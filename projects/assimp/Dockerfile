@@ -14,9 +14,11 @@
 #
 ################################################################################
 
-FROM gcr.io/oss-fuzz-base/base-builder
-RUN apt-get update && apt-get install -y cmake ninja-build zip
+# FROM gcr.io/oss-fuzz-base/base-builder
+FROM fsan-afl:latest
+RUN apt-get update && apt-get install -y cmake ninja-build zip && apt-get clean && rm -rf /var/lib/apt/lists/*
 RUN git clone --depth 1 --recursive https://github.com/assimp/assimp.git
 WORKDIR assimp
 COPY build.sh run_tests.sh $SRC/
+RUN chmod +x $SRC/build.sh $SRC/run_tests.sh
 

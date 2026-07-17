@@ -14,11 +14,14 @@
 #
 ################################################################################
 
-FROM gcr.io/oss-fuzz-base/base-builder
+# FROM gcr.io/oss-fuzz-base/base-builder
+FROM fsan-afl:latest
 
 # Install build tools
 RUN apt-get update && \
-    apt-get install -y make autoconf automake groff libtool pkg-config cmake nasm autopoint
+    apt-get install -y make autoconf automake groff libtool pkg-config cmake nasm autopoint && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 # Due to libtiff requirements, build requires autoconf 2.71 (or later)
 # Can probably be removed once base-builder switches to Ubuntu 22.04

@@ -14,7 +14,8 @@
 #
 ################################################################################
 
-FROM gcr.io/oss-fuzz-base/base-builder
+# FROM gcr.io/oss-fuzz-base/base-builder
+FROM fsan-afl:latest
 
 RUN apt-get update && apt-get install -y autoconf zlibc libtool liblcms2-dev libpng-dev
 RUN git clone --branch branch-2.2 --single-branch --depth 1 https://github.com/apple/cups.git cups
@@ -29,3 +30,4 @@ WORKDIR ghostpdl
 
 COPY *.cc *.options *.h $SRC/
 COPY build.sh generate_seeds.py $SRC/
+RUN chmod +x $SRC/build.sh $SRC/generate_seeds.py

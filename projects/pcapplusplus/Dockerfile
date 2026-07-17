@@ -14,9 +14,10 @@
 #
 ################################################################################
 
-FROM gcr.io/oss-fuzz-base/base-builder
+# FROM gcr.io/oss-fuzz-base/base-builder
+FROM fsan-afl:latest
 
-RUN apt-get update && apt-get install -y cmake autoconf flex bison
+RUN apt-get update && apt-get install -y cmake autoconf flex bison && apt-get clean && rm -rf /var/lib/apt/lists/*
 RUN git clone --depth=1 https://github.com/seladb/PcapPlusPlus PcapPlusPlus
 
 # Get tcpdump's test pcaps as seed corpus
@@ -26,3 +27,4 @@ RUN git clone --depth=1 https://github.com/the-tcpdump-group/libpcap.git libpcap
 WORKDIR PcapPlusPlus
 
 COPY *.sh pcapplusplus_enable_tests.diff $SRC/
+RUN chmod +x $SRC/*.sh

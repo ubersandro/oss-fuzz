@@ -16,8 +16,16 @@
 ################################################################################
 
 # Disable UBSan vptr since several targets built with -fno-rtti.
-export CFLAGS="$CFLAGS -fno-sanitize=vptr"
-export CXXFLAGS="$CXXFLAGS -fno-sanitize=vptr"
+# export CFLAGS="$CFLAGS -fno-sanitize=vptr"
+# export CXXFLAGS="$CXXFLAGS -fno-sanitize=vptr"
+export CXXFLAGS="-Os -gline-tables-only -DFUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION -pthread -fno-common -fno-data-sections -fsanitize=hwaddress,fsan,fsan-heap -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -L/src/fsan/llvm-project/build/lib/ -stdlib=libc++ -nostdinc++ -isystem /src/fsan/llvm-project/build/include/c++/v1 -mllvm -verify-machineinstrs -mllvm -disable-loop-idiom-all -mllvm -vectorize-slp=0 -mllvm -instcombine-fsan=1 -mllvm -enable-sroa=1 -mllvm -sroa-skip-mem2reg=0 -mllvm -hwasan-instrument-byval=0 -mllvm -fsan-instrument-mem-access-aggressive-trimming=1 -Wno-unused-command-line-argument"
+
+export CFLAGS="-Os -gline-tables-only -DFUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION -pthread -fno-common -fno-data-sections -fsanitize=hwaddress,fsan,fsan-heap -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -L/src/fsan/llvm-project/build/lib/ -mllvm -verify-machineinstrs -mllvm -disable-loop-idiom-all -mllvm -vectorize-slp=0 -mllvm -instcombine-fsan=1 -mllvm -enable-sroa=1 -mllvm -sroa-skip-mem2reg=0 -mllvm -hwasan-instrument-byval=0 -mllvm -fsan-instrument-mem-access-aggressive-trimming=1 -Wno-unused-command-line-argument"
+
+export NM="/src/fsan/llvm-project/build/bin/llvm-nm"
+export AR="/src/fsan/llvm-project/build/bin/llvm-ar"
+export AS="/src/fsan/llvm-project/build/bin/llvm-as"
+export RANLIB="/src/fsan/llvm-project/build/bin/llvm-ranlib"
 
 if [[ "$CXXFLAGS" == *"-fsanitize=address"* ]]; then
     export CXXFLAGS="$CXXFLAGS -fno-sanitize-address-use-odr-indicator"
@@ -59,26 +67,33 @@ if [[ "$CXXFLAGS" == *"-fuse-ld=gold"* ]]; then
     export MESON_CXXFLAGS="${CXXFLAGS//-fuse-ld=gold/}"
     export CXX_LD=gold
 fi
+MESON_LDFLAGS="$LDFLAGS"
 
 meson_install() {
   cd $SRC/$1
-  CFLAGS="$MESON_CFLAGS" CXXFLAGS="$MESON_CXXFLAGS" \
+  # CLEAN FIRST
+  rm -rf build
+  CFLAGS="$MESON_CFLAGS" CXXFLAGS="$MESON_CXXFLAGS" LDFLAGS="$MESON_LDFLAGS" \
   meson setup build -Dprefix="$FFMPEG_DEPS_PATH" -Ddefault_library=static -Dprefer_static=true \
                     --wrap-mode=nofallback --libdir "$LIBDIR" ${2:-}
   meson install -C build
 }
 
+set -x
 meson_install bzip2
 
 cd $SRC/zlib
 ./configure --prefix="$FFMPEG_DEPS_PATH" --enable-static --disable-shared
 make -j$(nproc) install
 
+
 cd $SRC/libxml2
 ./autogen.sh --prefix="$FFMPEG_DEPS_PATH" --enable-static \
       --without-debug --without-ftp --without-http \
       --without-legacy --without-python
 make -j$(nproc) install
+
+
 meson_install freetype "-Dharfbuzz=disabled"
 meson_install fribidi "-Ddocs=false -Dtests=false"
 meson_install harfbuzz "-Ddocs=disabled -Dtests=disabled"
@@ -169,15 +184,23 @@ if [ "$SANITIZER" = "memory" ] || [ "$FUZZING_ENGINE" = "centipede" ]; then
   FFMPEG_BUILD_ARGS="$FFMPEG_BUILD_ARGS --disable-asm"
 fi
 
+NM="/src/fsan/llvm-project/build/bin/llvm-nm" \
+AR="/src/fsan/llvm-project/build/bin/llvm-ar" \
+AS="/src/fsan/llvm-project/build/bin/llvm-as" \
+RANLIB="/src/fsan/llvm-project/build/bin/llvm-ranlib" \
 ./configure \
-        --cc=$CC --cxx=$CXX --ld="$CXX $CXXFLAGS -std=c++11" \
+        --cc=$CC --cxx=$CXX  \
+        --nm="/src/fsan/llvm-project/build/bin/llvm-nm" \
+        --ar="/src/fsan/llvm-project/build/bin/llvm-ar" \
+        --as="/src/fsan/llvm-project/build/bin/llvm-as" \
+        --ranlib="/src/fsan/llvm-project/build/bin/llvm-ranlib" \
         --extra-cflags="-I$FFMPEG_DEPS_PATH/include" \
-        --extra-ldflags="-L$FFMPEG_DEPS_PATH/lib" \
+        --extra-ldflags="-L$FFMPEG_DEPS_PATH/lib $LDFLAGS" \
         --prefix="$FFMPEG_DEPS_PATH" \
         --pkg-config-flags="--static" \
         --enable-ossfuzz \
         --libfuzzer=$LIB_FUZZING_ENGINE \
-        --optflags=-O1 \
+        --optflags=-Os \
         --enable-gpl \
         --enable-nonfree \
         --enable-libass \
@@ -325,14 +348,14 @@ make distclean
 
 # Reduce size of demuxer fuzzers by disabling various components.
 ./configure \
-        --cc=$CC --cxx=$CXX --ld="$CXX $CXXFLAGS -std=c++11" \
+        --cc=$CC --cxx=$CXX  \
         --extra-cflags="-I$FFMPEG_DEPS_PATH/include" \
         --extra-ldflags="-L$FFMPEG_DEPS_PATH/lib" \
         --prefix="$FFMPEG_DEPS_PATH" \
         --pkg-config-flags="--static" \
         --enable-ossfuzz \
         --libfuzzer=$LIB_FUZZING_ENGINE \
-        --optflags=-O1 \
+        --optflags=-Os \
         --enable-gpl \
         --enable-libxml2 \
         --disable-libdrm \

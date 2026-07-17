@@ -7,13 +7,14 @@ if [ "$#" -ne 2 ]; then
 fi
 
 export AFL_AUTORESUME=1
-
+export AFL_FUZZER_LOOPCOUNT=1000
 # export AFL_IGNORE_SEED_PROBLEMS=1
 export AFL_PIZZA_MODE=-1
 
 # do not detect leaks
 export AFL_BASE=$SRC/aflplusplus/
-export HWASAN_OPTIONS=verbosity=0:detect_leaks=0:abort_on_error=1:symbolize=0
+# some programs read the size of malloc/calloc calls from fuzzer-generated inputs. To allow them to continue, allocator_may_return_null=1
+export HWASAN_OPTIONS=verbosity=0:detect_leaks=0:abort_on_error=1:symbolize=0:allocator_may_return_null=1
 unset HWASAN_SYMBOLIZER_PATH
 
 HARNESS_FULLPATH=$(realpath $1)
@@ -21,6 +22,18 @@ PROJECT_NAME=$2
 INSTANCES=${INSTANCES:-1}
 PRODUCE_OUTPUT=${PRODUCE_OUTPUT:-1}
 PINNED_CORE=${PINNED_CORE:-0} # only meaningful when INSTANCES=1, otherwise cores are automatically assigned from the E_CORE_LIST
+# be smart and find the first core starting from 0 where NO FUZZER PROCESS is pinned
+if [ $PINNED_CORE -eq 0 ]; then
+    echo "Finding a free core to pin the fuzzer to..."
+        for i in {0..190}; do
+            if ! ps -e -o pid,psr,comm= | awk '{print $2,$3}' | grep -v defunc| grep -q "^$i afl-fuzz$"; then
+                PINNED_CORE=$i
+                break
+            fi
+        done
+fi
+echo "Using pinned core: $PINNED_CORE"
+sleep 3
 WITH_DICTIONARY=${WITH_DICTIONARY:-""}
 
 echo "Using harness: $HARNESS_FULLPATH"
@@ -44,12 +57,14 @@ fi
 pip install tqdm
 
 # download corpus 
-wget -O /tmp/corpus.zip "https://storage.googleapis.com/${PROJECT_NAME}-backup.clusterfuzz-external.appspot.com/corpus/libFuzzer/${PROJECT_NAME}_${HARNESS_NAME}/public.zip" || wget -O /tmp/corpus.zip "https://storage.googleapis.com/${PROJECT_NAME}-backup.clusterfuzz-external.appspot.com/corpus/libFuzzer/${HARNESS_NAME}/public.zip"
+CORPUS_TMP_FILE="/tmp/corpus.${HARNESS_NAME}.zip"
+wget -O $CORPUS_TMP_FILE "https://storage.googleapis.com/${PROJECT_NAME}-backup.clusterfuzz-external.appspot.com/corpus/libFuzzer/${PROJECT_NAME}_${HARNESS_NAME}/public.zip" || wget -O $CORPUS_TMP_FILE "https://storage.googleapis.com/${PROJECT_NAME}-backup.clusterfuzz-external.appspot.com/corpus/libFuzzer/${HARNESS_NAME}/public.zip"
 
 CORPUS_DIR="$OUT/corpus-${HARNESS_NAME}"
 rm -rf "$CORPUS_DIR" 2>/dev/null || true # clear 
-unzip -o /tmp/corpus.zip -d "$CORPUS_DIR" 2>&1 >/dev/null 2>&1 
+unzip -o $CORPUS_TMP_FILE -d "$CORPUS_DIR" 2>&1 >/dev/null 2>&1 
 echo "[+] CORPUS DOWNLOADED AND UNPACKED! SIZE IS: $(ls $CORPUS_DIR | wc -l)"
+rm -rf $CORPUS_TMP_FILE 2>/dev/null || true
 sleep 1
 
 #create filter dir
@@ -63,13 +78,16 @@ let x=0
 if [ -z "$SKIP_FILTERING" ]
 then
 for input in "$CORPUS_DIR"/*; do
-    timeout -s KILL 2s "$HARNESS_FULLPATH" "$input" >/dev/null 2>&1
+    # DONT use KILL since it will produce zombies. Also, check on RC and wait in that order.
+    taskset -c $PINNED_CORE timeout -s TERM 2s "$HARNESS_FULLPATH" "$input" >/dev/null 2>&1
     rc=$?
-    if [ $rc -ne 0 ]; then
-        echo "[!] Input $input caused a timeout or crash (exit code: $rc), MOVING IT."
-        mv "$input" "$FILTERED_DIR"
-    fi
     wait $!
+    
+    if [ $rc -ne 0 ]; then
+        echo "[!] Input $input caused a timeout or crash (exit code: $rc), MOVING IT. Idx $x / $N"
+        mv "$input" "$FILTERED_DIR"/$(basename "$input").$rc
+    fi
+    
     let x=x+1
     if [ $((x % 1000)) -eq 0 ]; then
         echo "[+] Processed $x / $N inputs..."
@@ -81,6 +99,10 @@ echo "[+] CORPUS FILTERED:"
 echo "[+] FOUND CRASHES/HANGS IN CORPUS: $(ls $FILTERED_DIR | wc -l) files"
 sleep 1
 CMIN_TOUT="${CMIN_TOUT:-20}"
+# if the harness is fuzz_route, set all TOUTs to 250
+if [[ "$HARNESS_NAME" == *"fuzz_route"* ]]; then
+    CMIN_TOUT=250
+fi
 # if any corpus, minimize
 if [ "$(ls -A $CORPUS_DIR)" ]; then
     echo "[+] CORPUS NOT EMPTY, PROCEEDING TO MINIMIZATION."
@@ -99,8 +121,12 @@ E_CORE_LIST=( {8..23} )
 
 $AFL_BASE/afl-system-config
 
-SECONDS=$((36 * 3600))
+SECONDS=$((72 * 3600)) # 3 day runs
 FUZZ_TOUT="${FUZZ_TOUT:-100}"
+# if the harness is fuzz_route in project gpac, set all TOUTs to 250
+if [[ "$HARNESS_NAME" == *"fuzz_route"* ]] && [[ "$PROJECT_NAME" == *"gpac"* ]]; then
+    FUZZ_TOUT=250
+fi
 
 if [ "$INSTANCES" -eq 1 ]; then
     # if only one instance, pin to the core specified by PINNED_CORE
@@ -109,7 +135,11 @@ fi
 
 for i in $(seq 0 $(($INSTANCES-1))); do
     core=${E_CORE_LIST[$i]}
-    outdir="$OUT/${HARNESS_NAME}_${i}"
+    # outdir="$OUT/${HARNESS_NAME}_${i}"
+    if [ ! -d "/fuzzing-campaign" ]; then
+        exit 1
+    fi
+    outdir="/fuzzing-campaign/${HARNESS_NAME}_${i}" # store campaign on host
     instance_corpusdir="$OUT/${HARNESS_NAME}_${i}"
     rm -rf "$outdir" 2>/dev/null || true
     rm -rf "$instance_corpusdir" 2>/dev/null || true
