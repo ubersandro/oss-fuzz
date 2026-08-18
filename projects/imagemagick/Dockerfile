@@ -16,7 +16,6 @@
 
 # FROM gcr.io/oss-fuzz-base/base-builder
 FROM fsan-afl:latest
-
 # Install build tools
 RUN apt-get update && \
     apt-get install -y make autoconf automake groff libtool pkg-config cmake nasm autopoint && \
@@ -37,7 +36,9 @@ RUN git clone --depth 1 https://github.com/uclouvain/openjpeg
 RUN git clone --depth 1 https://github.com/webmproject/libwebp
 RUN git clone --depth 1 https://github.com/madler/zlib
 RUN git clone --depth 1 https://github.com/ebiggers/libdeflate
-RUN git clone --depth 1 https://github.com/libjpeg-turbo/libjpeg-turbo
+RUN git clone https://github.com/libjpeg-turbo/libjpeg-turbo
+# broken dependency breaks the build ...
+RUN cd libjpeg-turbo && git checkout 240e20d87c0b7d17614687ddc55ccd1fc631daf9 && cd - 
 RUN git clone --depth 1 https://github.com/tukaani-project/xz
 RUN git clone --depth 1 https://github.com/libraw/libraw
 RUN git clone --depth 1 https://github.com/pnggroup/libpng
@@ -50,4 +51,8 @@ RUN git clone https://www.cl.cam.ac.uk/~mgk25/git/jbigkit # does not support sha
 ADD https://lcamtuf.coredump.cx/afl/demo/afl_testcases.tgz afl_testcases.tgz
 
 WORKDIR imagemagick
+RUN sed -i 
+# export CXX=/src/aflplusplus/afl-clang-fast++
+# export CC=/src/aflplusplus/afl-clang-fast
+
 COPY build.sh run_tests.sh replay_build.sh $SRC/

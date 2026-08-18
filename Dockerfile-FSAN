@@ -3,13 +3,13 @@ FROM gcr.io/oss-fuzz-base/base-builder
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y openssh-client nano vim gdb cmake ninja-build tmux lldb htop && apt-get clean && rm -rf /var/lib/apt/lists/*
-
+# RUN apt-get purge ccache
 # setup the source directory
 RUN mkdir $SRC/fsan
 WORKDIR $SRC/fsan
 COPY llvm-project $SRC/fsan/llvm-project
 ENV LLVM="$SRC/fsan/llvm-project/"
-
+# before building LLVM, store current git commit in file under /src
 #Build LLVM & its libc(xx)
 
 ENV CFLAGS=""
@@ -20,6 +20,8 @@ ENV CXX=""
 ENV LDFLAGS=""
 
 WORKDIR $LLVM
+RUN git log -1 --format="%H" > $SRC/FSAN_COMM_HASH
+
 # TMP
 RUN git checkout levels || true 
 RUN rm -rf build build-runtimes || true
@@ -63,14 +65,39 @@ ENV CC="$AFL/afl-clang-lto"
 ENV CXX="$AFL/afl-clang-lto++"
 
 # HIDDEN FLAGS DEFAULTS
-# -mllvm -fsan-skip-unnamed-structs=1
-# -mllvm -fsan-default=0
+
+# /home/ubuntu/ubersandro/llvm-project/build/bin/clang++ -ggdb -O2 -DSPEC_NO_CXX17_SPECIAL_MATH_FUNCTIONS -Wno-int-conversion -fsanitize=hwaddress -fno-common -fno-data-sections -fno-discard-value-names -fsanitize=fsan -fsanitize=fsan-heap -mllvm -fsan-verbose=0 -mllvm -no-stack-coloring=1 -mllvm -fsan-instrument-heap=1 -mllvm -fsan-tag-heap=1 -mllvm -fsan-instrument-globals=1 -mllvm -fsan-instrument-stack=1 -mllvm -fsan-instrument-geps=1 -mllvm -fsan-instrument-bops=1 -mllvm -fsan-instrument-cmp=1 -mllvm -fsan-skip-unnamed-structs=1 -mllvm -fsan-blocklist-tag-filepath=/home/ubuntu/ubersandro/fsan.blocklist -mllvm -fsan-instrument-mem-accesses=1 -mllvm -fsan-instrument-mem-intrinsics=1 -mllvm -fsan-instrument-mem-accesses-inline=0 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -mllvm -hwasan-instrument-byval=0 -mllvm -instcombine-fsan=1 -mllvm -instcombine-disable-load-store-alloca=1 -mllvm -enable-sroa=1 -mllvm -sroa-skip-mem2reg=0 -mllvm -fsan-disable-gvn=0 -mllvm -fsan-disable-earlycse=0 -mllvm -vectorize-slp=0 -mllvm -vectorize-loops=0 -mllvm -fsan-disable-indvarsimplify=1 -mllvm -fsan-disable-aggressive-instcombine=0 -mllvm -disable-loop-idiom-all
+
 # -mllvm -fsan-skip-unnamed-structs=1
 # -mllvm -fsan-skip-anon-structs=0
-# disable loop idioms, SROA fully enabled in the patched version, IC partially enabled, no by value
-ENV CXXFLAGS="-Os -gline-tables-only -DFUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION -pthread -fno-common -fno-data-sections -fsanitize=hwaddress,fsan,fsan-heap -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -L/src/fsan/llvm-project/build/lib/ -stdlib=libc++ -nostdinc++ -isystem /src/fsan/llvm-project/build/include/c++/v1 -mllvm -verify-machineinstrs -mllvm -disable-loop-idiom-all -mllvm -vectorize-slp=0 -mllvm -instcombine-fsan=1 -mllvm -enable-sroa=1 -mllvm -sroa-skip-mem2reg=0 -mllvm -hwasan-instrument-byval=0 -mllvm -fsan-instrument-mem-access-aggressive-trimming=1 -Wno-unused-command-line-argument"
+ENV FSAN_TUNABLES="-mllvm -disable-loop-idiom-all \
+    -mllvm -vectorize-slp=0 \
+    -mllvm -fsan-instrument-heap=1 \
+    -mllvm -fsan-tag-heap=1 \
+    -mllvm -fsan-instrument-globals=1 \
+    -mllvm -fsan-instrument-stack=1 \
+    -mllvm -fsan-instrument-geps=1 \
+    -mllvm -fsan-instrument-bops=1 \
+    -mllvm -fsan-instrument-cmp=1 \
+    -mllvm -fsan-instrument-mem-accesses=1 \
+    -mllvm -fsan-instrument-mem-intrinsics=1 \
+    -mllvm -fsan-instrument-mem-accesses-inline=0 \
+    -mllvm -fsan-skip-unnamed-structs=1 \
+    -mllvm -fsan-skip-anon-structs=0 \
+    -mllvm -instcombine-fsan=1 \
+    -mllvm -instcombine-disable-load-store-alloca=0 \
+    -mllvm -enable-sroa=1 -mllvm -sroa-skip-mem2reg=0 \
+    -mllvm -hwasan-instrument-byval=0 \
+    -mllvm -fsan-blocklist-tag-filepath=/src/fsan.blocklist \
+    -mllvm -fsan-disable-gvn=0 \
+    -mllvm -fsan-disable-earlycse=0 \
+    -mllvm -vectorize-loops=0 \
+    -mllvm -fsan-disable-indvarsimplify=1 \
+    -mllvm -fsan-disable-aggressive-instcombine=0 -fno-discard-value-names"
 
-ENV CFLAGS="-Os -gline-tables-only -DFUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION -pthread -fno-common -fno-data-sections -fsanitize=hwaddress,fsan,fsan-heap -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -L/src/fsan/llvm-project/build/lib/ -mllvm -verify-machineinstrs -mllvm -disable-loop-idiom-all -mllvm -vectorize-slp=0 -mllvm -instcombine-fsan=1 -mllvm -enable-sroa=1 -mllvm -sroa-skip-mem2reg=0 -mllvm -hwasan-instrument-byval=0 -mllvm -fsan-instrument-mem-access-aggressive-trimming=1 -Wno-unused-command-line-argument"
+ENV CXXFLAGS="-O2 -gline-tables-only -DFUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION -pthread -fno-common -fno-data-sections -fsanitize=hwaddress,fsan,fsan-heap -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -L/src/fsan/llvm-project/build/lib/ -stdlib=libc++ -nostdinc++ -isystem /src/fsan/llvm-project/build/include/c++/v1 -mllvm -verify-machineinstrs -Wno-unused-command-line-argument $FSAN_TUNABLES "
+
+ENV CFLAGS="-O2 -gline-tables-only -DFUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION -pthread -fno-common -fno-data-sections -fsanitize=hwaddress,fsan,fsan-heap -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -L/src/fsan/llvm-project/build/lib/ -mllvm -verify-machineinstrs -Wno-unused-command-line-argument $FSAN_TUNABLES"
 
 ENV LD="$LLVM/build/bin/ld.lld"
 ENV LDFLAGS="--ld-path=/src/fsan/llvm-project/build/bin/ld.lld -L/src/fsan/llvm-project/build/lib -stdlib=libc++ --unwindlib=libunwind --rtlib=compiler-rt -Wl,-rpath=/src/fsan/llvm-project/build/lib -fsanitize=hwaddress"
@@ -84,11 +111,17 @@ ENV HWASAN_OPTIONS="verbosity=0:symbolize=0:halt_on_error=1:abort_on_error=1:det
 
 RUN mkdir $OUT/in
 RUN echo "hi" > $OUT/in/in
-RUN echo "" > /src/fsan.blocklist
+RUN touch /src/fsan.blocklist
 
 RUN cp $AFL/utils/aflpp_driver/libAFLDriver.a /usr/lib/libFuzzingEngine.a
 COPY oss-fuzz/start-campaign.sh $SRC/fuzz.sh
+COPY oss-fuzz/schedule-fuzzer.sh $SRC/schedule-fuzzer.sh
+COPY oss-fuzz/restart-campaign.sh $SRC/restart-campaign.sh
+
 RUN chmod +x $SRC/fuzz.sh
+RUN chmod +x $SRC/schedule-fuzzer.sh
+RUN chmod +x $SRC/restart-campaign.sh
+
 WORKDIR $SRC
 
 # define alias rebuildllvm
@@ -101,4 +134,6 @@ RUN echo 'alias fuzzercheck="for d in \$(find /out/ -name \"*_0\"); do /src/aflp
 
 
 # TO RUN
-# PROJECT= docker run -dit --init --privileged -v ~/ubersandro/eval/$PROJECT:/fuzzing gcr.io/oss-fuzz/$PROJECT:latest /bin/bash
+# PROJECT= docker run -dit --privileged --init -v ~/ubersandro/eval/fuzzing/openbabel --name openbabel-fsan gcr.io/oss-fuzz/openbabel:latest /bin/bash
+#define alias BL for build log 
+RUN echo 'alias BL="/src/build.sh 2>&1 | tee /tmp/log"' >> ~/.bashrc

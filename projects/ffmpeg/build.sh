@@ -18,15 +18,6 @@
 # Disable UBSan vptr since several targets built with -fno-rtti.
 # export CFLAGS="$CFLAGS -fno-sanitize=vptr"
 # export CXXFLAGS="$CXXFLAGS -fno-sanitize=vptr"
-export CXXFLAGS="-Os -gline-tables-only -DFUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION -pthread -fno-common -fno-data-sections -fsanitize=hwaddress,fsan,fsan-heap -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -L/src/fsan/llvm-project/build/lib/ -stdlib=libc++ -nostdinc++ -isystem /src/fsan/llvm-project/build/include/c++/v1 -mllvm -verify-machineinstrs -mllvm -disable-loop-idiom-all -mllvm -vectorize-slp=0 -mllvm -instcombine-fsan=1 -mllvm -enable-sroa=1 -mllvm -sroa-skip-mem2reg=0 -mllvm -hwasan-instrument-byval=0 -mllvm -fsan-instrument-mem-access-aggressive-trimming=1 -Wno-unused-command-line-argument"
-
-export CFLAGS="-Os -gline-tables-only -DFUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION -pthread -fno-common -fno-data-sections -fsanitize=hwaddress,fsan,fsan-heap -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -L/src/fsan/llvm-project/build/lib/ -mllvm -verify-machineinstrs -mllvm -disable-loop-idiom-all -mllvm -vectorize-slp=0 -mllvm -instcombine-fsan=1 -mllvm -enable-sroa=1 -mllvm -sroa-skip-mem2reg=0 -mllvm -hwasan-instrument-byval=0 -mllvm -fsan-instrument-mem-access-aggressive-trimming=1 -Wno-unused-command-line-argument"
-
-export NM="/src/fsan/llvm-project/build/bin/llvm-nm"
-export AR="/src/fsan/llvm-project/build/bin/llvm-ar"
-export AS="/src/fsan/llvm-project/build/bin/llvm-as"
-export RANLIB="/src/fsan/llvm-project/build/bin/llvm-ranlib"
-
 if [[ "$CXXFLAGS" == *"-fsanitize=address"* ]]; then
     export CXXFLAGS="$CXXFLAGS -fno-sanitize-address-use-odr-indicator"
 fi
@@ -76,6 +67,7 @@ meson_install() {
   CFLAGS="$MESON_CFLAGS" CXXFLAGS="$MESON_CXXFLAGS" LDFLAGS="$MESON_LDFLAGS" \
   meson setup build -Dprefix="$FFMPEG_DEPS_PATH" -Ddefault_library=static -Dprefer_static=true \
                     --wrap-mode=nofallback --libdir "$LIBDIR" ${2:-}
+  meson compile -vC build 
   meson install -C build
 }
 
@@ -84,14 +76,14 @@ meson_install bzip2
 
 cd $SRC/zlib
 ./configure --prefix="$FFMPEG_DEPS_PATH" --enable-static --disable-shared
-make -j$(nproc) install
+make -j24 install
 
 
 cd $SRC/libxml2
 ./autogen.sh --prefix="$FFMPEG_DEPS_PATH" --enable-static \
       --without-debug --without-ftp --without-http \
       --without-legacy --without-python
-make -j$(nproc) install
+make -j24 install
 
 
 meson_install freetype "-Dharfbuzz=disabled"
@@ -102,7 +94,7 @@ meson_install fontconfig "-Dtests=disabled -Dtools=disabled"
 cd $SRC/libass
 ./autogen.sh
 ./configure --prefix="$FFMPEG_DEPS_PATH" --enable-static --disable-shared --disable-asm
-make -j$(nproc) install
+make -j24 install
 
 cd $SRC
 bzip2 -f -d alsa-lib-*
@@ -110,13 +102,13 @@ tar xf alsa-lib-*
 rm alsa-lib-*.tar
 cd alsa-lib-*
 ./configure --prefix="$FFMPEG_DEPS_PATH" --enable-static --disable-shared
-make -j$(nproc) install
+make -j24 install
 
 cd $SRC/fdk-aac
 autoreconf -fiv
 CXXFLAGS="$CXXFLAGS -fno-sanitize=shift-base,signed-integer-overflow" \
 ./configure --prefix="$FFMPEG_DEPS_PATH" --disable-shared
-make -j$(nproc) install
+make -j24 install
 
 cd $SRC/libvpx
 if [[ "$SANITIZER" == "memory" ]] || [[ "$FUZZING_ENGINE" == "centipede" ]]; then
@@ -134,17 +126,17 @@ LDFLAGS="$CXXFLAGS" ./configure --prefix="$FFMPEG_DEPS_PATH" \
         --extra-cflags="-DVPX_MAX_ALLOCABLE_MEMORY=1073741824" \
         $LIBVPX_BUILD_ARGS
 
-make -j$(nproc) install
+make -j24 install
 
 cd $SRC/ogg
 ./autogen.sh
 ./configure --prefix="$FFMPEG_DEPS_PATH" --enable-static --disable-crc
-make -j$(nproc) install
+make -j24 install
 
 cd $SRC/opus
 ./autogen.sh
 ./configure --prefix="$FFMPEG_DEPS_PATH" --enable-static
-make -j$(nproc) install
+make -j24 install
 
 cd $SRC/theora
 if [[ "$ARCHITECTURE" == i386 ]]; then
@@ -160,12 +152,12 @@ CFLAGS="$CFLAGS -fPIC" LDFLAGS="-L$FFMPEG_DEPS_PATH/lib/" \
       ./autogen.sh
 ./configure --with-ogg="$FFMPEG_DEPS_PATH" --prefix="$FFMPEG_DEPS_PATH" \
       --enable-static --disable-examples $THEORA_BUILD_ARGS
-make -j$(nproc) install
+make -j24 install
 
 cd $SRC/vorbis
 ./autogen.sh
 ./configure --prefix="$FFMPEG_DEPS_PATH" --enable-static
-make -j$(nproc) install
+make -j24 install
 
 # Remove shared libraries to avoid accidental linking against them.
 rm $FFMPEG_DEPS_PATH/lib/*.so
@@ -189,18 +181,19 @@ AR="/src/fsan/llvm-project/build/bin/llvm-ar" \
 AS="/src/fsan/llvm-project/build/bin/llvm-as" \
 RANLIB="/src/fsan/llvm-project/build/bin/llvm-ranlib" \
 ./configure \
-        --cc=$CC --cxx=$CXX  \
-        --nm="/src/fsan/llvm-project/build/bin/llvm-nm" \
-        --ar="/src/fsan/llvm-project/build/bin/llvm-ar" \
-        --as="/src/fsan/llvm-project/build/bin/llvm-as" \
-        --ranlib="/src/fsan/llvm-project/build/bin/llvm-ranlib" \
+  --cc=/src/aflplusplus/afl-clang-lto \
+  --cxx=/src/aflplusplus/afl-clang-lto++ \
+  --ld=/src/aflplusplus/afl-clang-lto++ \
+  --nm=/src/fsan/llvm-project/build/bin/llvm-nm \
+  --ar=/src/fsan/llvm-project/build/bin/llvm-ar \
+  --ranlib=/src/fsan/llvm-project/build/bin/llvm-ranlib \
         --extra-cflags="-I$FFMPEG_DEPS_PATH/include" \
         --extra-ldflags="-L$FFMPEG_DEPS_PATH/lib $LDFLAGS" \
         --prefix="$FFMPEG_DEPS_PATH" \
         --pkg-config-flags="--static" \
         --enable-ossfuzz \
         --libfuzzer=$LIB_FUZZING_ENGINE \
-        --optflags=-Os \
+        --optflags=-O2 \
         --enable-gpl \
         --enable-nonfree \
         --enable-libass \
@@ -298,7 +291,7 @@ if [ ${#ALL_TARGETS[@]} -eq 0 ]; then
       echo "ERROR: No targets found to build!" >&2
       exit 1
 fi
-make -j$(nproc) "${ALL_TARGETS[@]}"
+make -j24 "${ALL_TARGETS[@]}"
 
 for i in "${!BSF_TARGETS[@]}"; do
       echo -en "[libfuzzer]\nmax_len = 1000000\n" >$OUT/${BSF_FUZZER_NAMES[$i]}.options
@@ -347,15 +340,24 @@ mv tools/target_io_dem_fuzzer $OUT/${fuzzer_name}
 make distclean
 
 # Reduce size of demuxer fuzzers by disabling various components.
+NM="/src/fsan/llvm-project/build/bin/llvm-nm" \
+AR="/src/fsan/llvm-project/build/bin/llvm-ar" \
+AS="/src/fsan/llvm-project/build/bin/llvm-as" \
+RANLIB="/src/fsan/llvm-project/build/bin/llvm-ranlib" \
 ./configure \
-        --cc=$CC --cxx=$CXX  \
+  --cc=/src/aflplusplus/afl-clang-lto \
+  --cxx=/src/aflplusplus/afl-clang-lto++ \
+  --ld=/src/aflplusplus/afl-clang-lto++ \
+  --nm=/src/fsan/llvm-project/build/bin/llvm-nm \
+  --ar=/src/fsan/llvm-project/build/bin/llvm-ar \
+  --ranlib=/src/fsan/llvm-project/build/bin/llvm-ranlib \
         --extra-cflags="-I$FFMPEG_DEPS_PATH/include" \
         --extra-ldflags="-L$FFMPEG_DEPS_PATH/lib" \
         --prefix="$FFMPEG_DEPS_PATH" \
         --pkg-config-flags="--static" \
         --enable-ossfuzz \
         --libfuzzer=$LIB_FUZZING_ENGINE \
-        --optflags=-Os \
+        --optflags=-O2 \
         --enable-gpl \
         --enable-libxml2 \
         --disable-libdrm \
@@ -400,7 +402,7 @@ if [ ${#DEMUXER_TARGETS[@]} -eq 0 ]; then
       echo "ERROR: No demuxer targets found to build!" >&2
       exit 1
 fi
-make -j$(nproc) "${DEMUXER_TARGETS[@]}"
+make -j24 "${DEMUXER_TARGETS[@]}"
 
 for i in "${!DEMUXER_TARGETS[@]}"; do
       mv ${DEMUXER_TARGETS[$i]} $OUT/${DEMUXER_FUZZER_NAMES[$i]}

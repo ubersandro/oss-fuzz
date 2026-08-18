@@ -13,9 +13,15 @@
 # limitations under the License.
 #
 ################################################################################
+# force build at O2, NOT O3
+# FROM gcr.io/oss-fuzz-base/base-builder
+FROM fsan-afl
+RUN apt-get update && apt install -y  && apt-get clean && rm -rf /var/lib/apt/lists/*
+# EVAL FSAN COMMIT : b3c041ad759bd25a7ef2925bbf0da8426a6d15f6
+RUN git clone https://github.com/openbabel/openbabel.git
+RUN cd openbabel && git checkout b3c041ad759bd25a7ef2925bbf0da8426a6d15f6
+RUN rm -rf /openbabel/.git
 
-FROM gcr.io/oss-fuzz-base/base-builder
-RUN apt-get update && apt install -y cmake
-RUN git clone --depth 1 https://github.com/openbabel/openbabel.git
 COPY *.sh $SRC/
 WORKDIR $SRC/openbabel
+CMD ["/bin/bash"]

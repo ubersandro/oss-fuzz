@@ -16,7 +16,7 @@
 
 # FROM gcr.io/oss-fuzz-base/base-builder
 FROM fsan-afl:latest
-RUN apt-get update && apt-get install -y nasm pkg-config rsync libtool gperf && apt-get clean && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y nasm pkg-config rsync help2man libtool gperf && apt-get clean && rm -rf /var/lib/apt/lists/*
 RUN curl -LO https://mirrors.kernel.org/ubuntu/pool/main/a/automake-1.16/automake_1.16.5-1.3_all.deb && \
     apt install ./automake_1.16.5-1.3_all.deb
 RUN curl -LO https://mirrors.kernel.org/ubuntu/pool/main/a/autoconf/autoconf_2.72-3.1ubuntu1_all.deb && \
@@ -40,6 +40,9 @@ RUN git clone --depth 1 https://gitlab.xiph.org/xiph/opus.git
 RUN git clone --depth 1 https://gitlab.xiph.org/xiph/theora.git
 RUN git clone --depth 1 https://gitlab.xiph.org/xiph/vorbis.git
 RUN git clone --depth 1 https://gitlab.gnome.org/GNOME/libxml2.git
+
+# find file bprint.h inside ffmpeg, replace     char reserved_internal_buffer[1]; with     char reserved_internal_buffer[1004]; -> solve trivial overflow
+RUN sed -i 's/char reserved_internal_buffer\[1\];/char reserved_internal_buffer[1004];/' ffmpeg/libavutil/bprint.h
 
 COPY build.sh replay_build.sh run_tests.sh group_seed_corpus.py name_mappings.py $SRC/
 RUN chmod +x $SRC/build.sh $SRC/replay_build.sh $SRC/run_tests.sh

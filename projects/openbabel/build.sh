@@ -14,12 +14,13 @@
 # limitations under the License.
 #
 ################################################################################
-
 export CXXFLAGS="${CXXFLAGS} -std=c++17"
 sed -i 's/CMAKE_CXX_STANDARD 11/CMAKE_CXX_STANDARD 17/g' CMakeLists.txt
-
+# NOTE: build at O2, not O3
 # build project
 mkdir build && cd build
-cmake .. -DBUILD_SHARED=OFF -DBUILD_MIXED=ON
-make -j $(nproc)
+# build rel with dbg info
+cmake .. -DCMAKE_VERBOSE_MAKEFILE=ON -DBUILD_SHARED=OFF -DBUILD_MIXED=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_CXX_FLAGS_RELWITHDEBINFO="${CXXFLAGS}"
+make -j $(nproc) VERBOSE=1
 cp bin/fuzz* $OUT/
+

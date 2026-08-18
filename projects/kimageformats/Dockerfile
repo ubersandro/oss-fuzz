@@ -17,8 +17,22 @@
 
 # FROM gcr.io/oss-fuzz-base/base-builder
 FROM fsan-afl:latest
-RUN git clone --depth 1 -b master https://invent.kde.org/frameworks/kimageformats.git
+RUN touch $SRC/fsan.blocklist
+# also uninstrument variable QMetaObjectStatic -> in the src code of the compiler
+
+RUN git clone -b master https://invent.kde.org/frameworks/kimageformats.git
+RUN cd kimageformats && git checkout 215305f
+RUN rm -rf kimageformats/.git
+COPY kimageformats.blocklist $SRC/fsan.blocklist
 RUN $SRC/kimageformats/autotests/ossfuzz/prepare_build.sh
 RUN cp $SRC/kimageformats/autotests/ossfuzz/build_fuzzers.sh $SRC/build.sh
+# patch the build to remove their LDFLAGS -> comment out lines from 21 to 25, including extremes
+RUN sed -i '21,25 s/^/#/' $SRC/build.sh
 RUN chmod +x $SRC/build.sh
 WORKDIR $SRC/kimageformats
+
+# PATCH for libde265
+# insert this line after Build libde265 -> # export CFLAGS="${CFLAGS/-O2/-O1}" ;export CXXFLAGS="${CXXFLAGS/-O2/-O1}", do not replace, insert in place
+# RUN sed -i 's/Build libde265/&\nexport CFLAGS="${CFLAGS/-O2/-O1}" ;export CXXFLAGS="${CXXFLAGS/-O2/-O1}"/' $SRC/build.sh
+# before Build openjpeg, restore CFLAGS and CXXFLAGS
+# RUN sed -i 's/Build openjpeg/&\nexport CFLAGS=${CFLAGS/-O1/-O2}\nexport CXXFLAGS=${CXXFLAGS/-O1/-O2}/' $SRC/build.sh

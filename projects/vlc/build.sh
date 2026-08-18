@@ -111,10 +111,10 @@ make V=1 -j$(nproc) CC="$CC" CXX="$CXX" .bpg
 # while ffmpeg's symbols stay global for the avcodec plugin.
 for bpg_a in ../*/lib/libbpg.a; do
     [ -f "$bpg_a" ] || continue
-    ld -r --whole-archive "$bpg_a" -o "${bpg_a}.merged.o"
-    objcopy --wildcard --keep-global-symbol='bpg_*' "${bpg_a}.merged.o" "${bpg_a}.local.o"
+    $LLVM_BIN/ld.lld -r --whole-archive "$bpg_a" -o "${bpg_a}.merged.o"
+    $LLVM_BIN/llvm-objcopy --wildcard --keep-global-symbol='bpg_*' "${bpg_a}.merged.o" "${bpg_a}.local.o"
     rm -f "$bpg_a" "${bpg_a}.merged.o"
-    ar crs "$bpg_a" "${bpg_a}.local.o"
+    $LLVM_BIN/llvm-ar crs "$bpg_a" "${bpg_a}.local.o"
     rm -f "${bpg_a}.local.o"
 done
 

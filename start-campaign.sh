@@ -33,14 +33,12 @@ if [ $PINNED_CORE -eq 0 ]; then
         done
 fi
 echo "Using pinned core: $PINNED_CORE"
-sleep 3
 WITH_DICTIONARY=${WITH_DICTIONARY:-""}
 
 echo "Using harness: $HARNESS_FULLPATH"
 echo "Using project name: $PROJECT_NAME"
 echo "Using instances: $INSTANCES"
 echo "PRODUCE OUTPUT: $PRODUCE_OUTPUT"
-sleep 1
 
 # assert the file exists
 if [ ! -f "$HARNESS_FULLPATH" ]; then
@@ -56,16 +54,47 @@ if [ ! -d "$OUT" ]; then
 fi
 pip install tqdm
 
-# download corpus 
+DOWNLOAD_CORPUS=${DOWNLOAD_CORPUS:-1}
+CORPUS_DIR="$OUT/corpus-${HARNESS_NAME}"
 CORPUS_TMP_FILE="/tmp/corpus.${HARNESS_NAME}.zip"
+rm -rf "$CORPUS_TMP_FILE" 2>/dev/null || true
+rm -rf "$CORPUS_DIR" 2>/dev/null || true # clear 
+
 wget -O $CORPUS_TMP_FILE "https://storage.googleapis.com/${PROJECT_NAME}-backup.clusterfuzz-external.appspot.com/corpus/libFuzzer/${PROJECT_NAME}_${HARNESS_NAME}/public.zip" || wget -O $CORPUS_TMP_FILE "https://storage.googleapis.com/${PROJECT_NAME}-backup.clusterfuzz-external.appspot.com/corpus/libFuzzer/${HARNESS_NAME}/public.zip"
 
-CORPUS_DIR="$OUT/corpus-${HARNESS_NAME}"
-rm -rf "$CORPUS_DIR" 2>/dev/null || true # clear 
-unzip -o $CORPUS_TMP_FILE -d "$CORPUS_DIR" 2>&1 >/dev/null 2>&1 
+SIZE_IS_ZERO=$(stat -c %s "$CORPUS_TMP_FILE" 2>/dev/null || echo 0)
+
+if [ -f $CORPUS_TMP_FILE -a ! "$SIZE_IS_ZERO" -eq 0 ]; then
+    unzip -o $CORPUS_TMP_FILE -d "$CORPUS_DIR" 2>&1 >/dev/null 2>&1 
+else 
+    echo "[!] NO CORPUS FOUND FOR HARNESS: $HARNESS_NAME"
+    if [ "$PROJECT_NAME" == "openbabel" ]; then
+            echo "[+] USING LOCAL CORPUS FOR HARNESS: $HARNESS_NAME"
+            mkdir -p "$CORPUS_DIR" 2>/dev/null || true
+            cp /src/openbabel/test/fuzz/corpus/$HARNESS_NAME/* "$CORPUS_DIR"/
+            # set CMIN_TOUT to 100 for fuzz_empty_write in openbabel
+            if [[ "$HARNESS_NAME" == *"fuzz_empty_write"* ]]; then
+                CMIN_TOUT=100
+            fi
+            # for fuzz_molecule, use all the corpora available since there is something wrong
+            if [[ "$HARNESS_NAME" == *"fuzz_molecule"* ]]; then
+                echo "[+] USING ALL LOCAL CORPORA FOR HARNESS: $HARNESS_NAME"
+                mkdir -p "$CORPUS_DIR" 2>/dev/null || true
+                cp /src/openbabel/test/fuzz/corpus/*/* "$CORPUS_DIR"/
+            fi
+    else if [ "$PROJECT_NAME" == "assimp" ]; then
+            echo "[+] USING LOCAL CORPUS FOR HARNESS: $HARNESS_NAME"
+            mkdir -p "$CORPUS_DIR" 2>/dev/null || true
+            unzip -d "$CORPUS_DIR" /out/${HARNESS_NAME}_seed_corpus.zip 2>&1 >/dev/null 2>&1
+    else
+        echo "[!] NO LOCAL CORPUS FOUND FOR HARNESS: $HARNESS_NAME"
+        echo "[!] EXITING."
+        exit 1
+    fi
+    fi
+fi 
+
 echo "[+] CORPUS DOWNLOADED AND UNPACKED! SIZE IS: $(ls $CORPUS_DIR | wc -l)"
-rm -rf $CORPUS_TMP_FILE 2>/dev/null || true
-sleep 1
 
 #create filter dir
 FILTERED_DIR=/crashes-$HARNESS_NAME
@@ -94,15 +123,29 @@ for input in "$CORPUS_DIR"/*; do
     fi
 done
 fi 
-set -x
+
 echo "[+] CORPUS FILTERED:"
 echo "[+] FOUND CRASHES/HANGS IN CORPUS: $(ls $FILTERED_DIR | wc -l) files"
 sleep 1
 CMIN_TOUT="${CMIN_TOUT:-20}"
+
+if [[ "$HARNESS_NAME" == *"proto_fuzzer"* ]]; then
+    CMIN_TOUT=100
+fi
+
 # if the harness is fuzz_route, set all TOUTs to 250
 if [[ "$HARNESS_NAME" == *"fuzz_route"* ]]; then
-    CMIN_TOUT=250
+    echo "[+] HARNESS IS FUZZ_ROUTE, SETTING CMIN_TOUT TO 250"
+    CMIN_TOUT=100
 fi
+
+if [[ "$HARNESS_NAME" == *"fuzz_probe"* ]]; then
+    echo "[+] HARNESS IS FUZZ_ROUTE, SETTING CMIN_TOUT TO 250"
+    CMIN_TOUT=100
+fi
+
+
+echo CMIN_TOUT is set to $CMIN_TOUT
 # if any corpus, minimize
 if [ "$(ls -A $CORPUS_DIR)" ]; then
     echo "[+] CORPUS NOT EMPTY, PROCEEDING TO MINIMIZATION."
@@ -128,6 +171,7 @@ if [[ "$HARNESS_NAME" == *"fuzz_route"* ]] && [[ "$PROJECT_NAME" == *"gpac"* ]];
     FUZZ_TOUT=250
 fi
 
+
 if [ "$INSTANCES" -eq 1 ]; then
     # if only one instance, pin to the core specified by PINNED_CORE
     E_CORE_LIST=($PINNED_CORE)
@@ -145,14 +189,11 @@ for i in $(seq 0 $(($INSTANCES-1))); do
     rm -rf "$instance_corpusdir" 2>/dev/null || true
     cp -r $CORPUS_DIR "$instance_corpusdir" # this might be empty
     echo "launching instance $i on core $core"
-    # DO NOT USE SHARED MEMORY, PARALLEL FUZZING ETC. 
-    # just 10 independent afl-fuzz instances with identical copy of the corpus, each pzinned to a different E-core, fuzzing for 12h
-    # -m none as a default
-    
+
     OUT_REDIR=""
     RANDOM_NUMBER=$RANDOM
     DICT=""
-    # if [ ! "$WITH_DICTIONARY" -eq "" ]; then
+
     if [ ! -z "$WITH_DICTIONARY" ]; then
         DICT=" -x ${WITH_DICTIONARY} "
     fi

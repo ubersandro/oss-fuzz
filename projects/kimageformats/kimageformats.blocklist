@@ -1,0 +1,3 @@
+class.QUninitialized
+struct.QHashPrivate::Span
+StaticContent*

@@ -1,0 +1,129 @@
+FROM gcr.io/oss-fuzz-base/base-builder:ubuntu-24-04
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt-get install -y openssh-client nano vim gdb cmake ninja-build tmux lldb htop && apt-get clean && rm -rf /var/lib/apt/lists/*
+# RUN apt-get purge ccache
+# setup the source directory
+RUN mkdir $SRC/fsan
+WORKDIR $SRC/fsan
+COPY llvm-project $SRC/fsan/llvm-project
+ENV LLVM="$SRC/fsan/llvm-project/"
+
+#Build LLVM & its libc(xx)
+
+ENV CFLAGS=""
+ENV CXXFLAGS=""
+ENV CXXFLAGS_EXTRA=""
+ENV CC=""
+ENV CXX=""
+ENV LDFLAGS=""
+
+WORKDIR $LLVM
+# TMP
+RUN git checkout levels || true 
+RUN rm -rf build build-runtimes || true
+RUN mkdir build build-runtimes  || true
+# build LLVM
+
+WORKDIR $LLVM/build
+RUN cmake -DLLVM_ENABLE_PROJECTS="clang;lld" -DLLVM_ENABLE_RUNTIMES="compiler-rt" -DCMAKE_BUILD_TYPE=Release -GNinja -DLLVM_PARALLEL_LINK_JOBS=6  -DCOMPILER_RT_DEFAULT_TARGET_ONLY=ON -DCLANG_ENABLE_STATIC_ANALYZER=OFF -DCLANG_ENABLE_ARCMT=OFF ../llvm -DLLVM_FORCE_ENABLE_STATS=ON
+RUN ninja -j40
+# build libc, libcxx, libcxxabi, libunwind
+
+WORKDIR $LLVM/build-runtimes
+RUN cmake -DLLVM_ENABLE_ASSERTIONS=On -GNinja -DLLVM_PARALLEL_LINK_JOBS=1 -DLLVM_TARGETS_TO_BUILD="x86-64"  -DCMAKE_C_COMPILER=/src/fsan/llvm-project/build/bin/clang -DCMAKE_CXX_COMPILER=/src/fsan/llvm-project/build/bin/clang++ -DCMAKE_EXPORT_COMPILE_COMMANDS=ON  -DLLVM_ENABLE_RUNTIMES="libcxx;libcxxabi;libunwind" -DCMAKE_BUILD_TYPE=Release  -DLIBCXXABI_USE_LLVM_UNWINDER=ON  -DRUNTIMES_CMAKE_C_COMPILER=/src/fsan/llvm-project/build/bin/clang -DRUNTIMES_CMAKE_CXX_COMPILER=/src/fsan/llvm-project/build/bin/clang++  -DLLVM_USE_LINKER=/src/fsan/llvm-project/build/bin/ld.lld -DClang_DIR=/src/fsan/llvm-project/build/lib/cmake/clang -DLLVM_DIR=/src/fsan/llvm-project/build/lib/cmake/llvm -DCMAKE_CXX_FLAGS="-mllvm -rewrite-ptr-subs=1"  -DCMAKE_C_FLAGS="-mllvm -rewrite-ptr-subs=1" ../runtimes
+RUN ninja -j40
+
+# SET ENV FOR FUZZING
+ENV LLVM_BUILD="$LLVM/build"
+ENV LLVM_BIN="$LLVM_BUILD/bin"
+ENV LLVM_LIB="$LLVM_BUILD/lib/x86_64-unknown-linux-gnu"
+ENV LLVM_AS="$LLVM_BIN/llvm-as"
+ENV LLVM_AR="$LLVM_BIN/llvm-ar"
+ENV LLVM_RANLIB="$LLVM_BIN/llvm-ranlib"
+
+# AFL - clone pinned version
+ENV AFL="$SRC/aflplusplus"
+RUN rm -rf $AFL || true
+RUN git clone https://github.com/ubersandro/AFLplusplus.git $AFL
+WORKDIR $AFL
+
+# APPLY PATCH FOR FSAN LTO
+RUN sed -i 's/\- \-flto=full/\- \-flto\=full \-\-ld-path=\/src\/fsan\/llvm\-project\/build\/bin\/ld.lld/g' $AFL/GNUmakefile.llvm
+
+RUN sed -i 's/\- \-flto=thin/\- \-flto\=thin \-\-ld-path=\/src\/fsan\/llvm\-project\/build\/bin\/ld.lld/g' $AFL/GNUmakefile.llvm
+
+RUN sed -i 's/\- \-flto/\- \-flto \-\-ld-path=\/src\/fsan\/llvm\-project\/build\/bin\/ld.lld/g' $AFL/GNUmakefile.llvm
+
+# NOTE: this is going to build AFL without the optimizations that have been removed for FSAN TODO FIX or build it everywhere with this
+RUN LLVM_CONFIG=$LLVM_BIN/llvm-config make -j12 CC=$LLVM_BIN/clang CXX=$LLVM_BIN/clang++ LDFLAGS="--ld-path=/src/fsan/llvm-project/build/bin/ld.lld" AR=$LLVM_BIN/llvm-ar AS=$LLVM_BIN/llvm-as RANLIB=$LLVM_BIN/llvm-ranlib
+
+ENV CC="$AFL/afl-clang-lto"
+ENV CXX="$AFL/afl-clang-lto++"
+
+# HIDDEN FLAGS DEFAULTS
+
+# /home/ubuntu/ubersandro/llvm-project/build/bin/clang++ -ggdb -O2 -DSPEC_NO_CXX17_SPECIAL_MATH_FUNCTIONS -Wno-int-conversion -fsanitize=hwaddress -fno-common -fno-data-sections -fno-discard-value-names -fsanitize=fsan -fsanitize=fsan-heap -mllvm -fsan-verbose=0 -mllvm -no-stack-coloring=1 -mllvm -fsan-instrument-heap=1 -mllvm -fsan-tag-heap=1 -mllvm -fsan-instrument-globals=1 -mllvm -fsan-instrument-stack=1 -mllvm -fsan-instrument-geps=1 -mllvm -fsan-instrument-bops=1 -mllvm -fsan-instrument-cmp=1 -mllvm -fsan-skip-unnamed-structs=1 -mllvm -fsan-blocklist-tag-filepath=/home/ubuntu/ubersandro/fsan.blocklist -mllvm -fsan-instrument-mem-accesses=1 -mllvm -fsan-instrument-mem-intrinsics=1 -mllvm -fsan-instrument-mem-accesses-inline=0 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -mllvm -hwasan-instrument-byval=0 -mllvm -instcombine-fsan=1 -mllvm -instcombine-disable-load-store-alloca=0 -mllvm -enable-sroa=1 -mllvm -sroa-skip-mem2reg=0 -mllvm -fsan-disable-gvn=0 -mllvm -fsan-disable-earlycse=0 -mllvm -vectorize-slp=0 -mllvm -vectorize-loops=0 -mllvm -fsan-disable-indvarsimplify=1 -mllvm -fsan-disable-aggressive-instcombine=0 -mllvm -disable-loop-idiom-all
+
+# -mllvm -fsan-skip-unnamed-structs=1
+# -mllvm -fsan-skip-anon-structs=0
+ENV FSAN_TUNABLES="-mllvm -disable-loop-idiom-all \
+    -mllvm -vectorize-slp=0 \
+    -mllvm -fsan-instrument-heap=1 \
+    -mllvm -fsan-tag-heap=1 \
+    -mllvm -fsan-instrument-globals=1 \
+    -mllvm -fsan-instrument-stack=1 \
+    -mllvm -fsan-instrument-geps=1 \
+    -mllvm -fsan-instrument-bops=1 \
+    -mllvm -fsan-instrument-cmp=1 \
+    -mllvm -fsan-instrument-mem-accesses=1 \
+    -mllvm -fsan-instrument-mem-intrinsics=1 \
+    -mllvm -fsan-instrument-mem-accesses-inline=0 \
+    -mllvm -fsan-skip-unnamed-structs=1 \
+    -mllvm -fsan-skip-anon-structs=0 \
+    -mllvm -instcombine-fsan=1 \
+    -mllvm -instcombine-disable-load-store-alloca=0 \
+    -mllvm -enable-sroa=1 -mllvm -sroa-skip-mem2reg=0 \
+    -mllvm -hwasan-instrument-byval=0 \
+    -mllvm -fsan-blocklist-tag-filepath=/src/fsan.blocklist \
+    -mllvm -fsan-disable-gvn=0 \
+    -mllvm -fsan-disable-earlycse=0 \
+    -mllvm -vectorize-loops=0 \
+    -mllvm -fsan-disable-indvarsimplify=1 \
+    -mllvm -fsan-disable-aggressive-instcombine=0 -fno-discard-value-names"
+
+ENV CXXFLAGS="-O2 -gline-tables-only -DFUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION -pthread -fno-common -fno-data-sections -fsanitize=hwaddress,fsan,fsan-heap -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -L/src/fsan/llvm-project/build/lib/ -stdlib=libc++ -nostdinc++ -isystem /src/fsan/llvm-project/build/include/c++/v1 -mllvm -verify-machineinstrs -Wno-unused-command-line-argument $FSAN_TUNABLES "
+
+ENV CFLAGS="-O2 -gline-tables-only -DFUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION -pthread -fno-common -fno-data-sections -fsanitize=hwaddress,fsan,fsan-heap -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -L/src/fsan/llvm-project/build/lib/ -mllvm -verify-machineinstrs -Wno-unused-command-line-argument $FSAN_TUNABLES"
+
+ENV LD="$LLVM/build/bin/ld.lld"
+ENV LDFLAGS="--ld-path=/src/fsan/llvm-project/build/bin/ld.lld -L/src/fsan/llvm-project/build/lib -stdlib=libc++ --unwindlib=libunwind --rtlib=compiler-rt -Wl,-rpath=/src/fsan/llvm-project/build/lib -fsanitize=hwaddress"
+
+ENV CXXFLAGS_EXTRA=""
+ENV CCACHE_DISABLE=1
+
+ENV HWASAN_SYMBOLIZER_PATH="/usr/local/bin/llvm-symbolizer"
+ENV ASAN_SYMBOLIZER_PATH="/usr/local/bin/llvm-symbolizer"
+ENV HWASAN_OPTIONS="verbosity=0:symbolize=0:halt_on_error=1:abort_on_error=1:detect_leaks=0"
+
+RUN mkdir $OUT/in
+RUN echo "hi" > $OUT/in/in
+RUN touch /src/fsan.blocklist
+
+RUN cp $AFL/utils/aflpp_driver/libAFLDriver.a /usr/lib/libFuzzingEngine.a
+COPY oss-fuzz/start-campaign.sh $SRC/fuzz.sh
+RUN chmod +x $SRC/fuzz.sh
+WORKDIR $SRC
+
+# define alias rebuildllvm
+RUN echo "alias rebuildllvm='cd /src/fsan/llvm-project/build && ninja && cd -'" >> ~/.bashrc
+RUN echo 'alias fuzzercheck="for d in \$(find /out/ -name \"*_0\"); do /src/aflplusplus/afl-whatsup \$d ; done | grep -E \"instance|Crashes\""' >> ~/.bashrc
+
+
+# LTO
+# LLVM_CONFIG=/src/fsan/llvm-project/build/bin/llvm-config make -j12 VERBOSE=1 CC=/src/fsan/llvm-project/build/bin/clang CXX=/src/fsan/llvm-project/build/bin/clang++ LDFLAGS="--ld-path=/src/fsan/llvm-project/build/bin/ld.lld" AR=$LLVM/build/bin/llvm-ar AS=$LLVM/build/bin/llvm-as RANLIB=$LLVM/build/bin/llvm-ranlib
+
+
+# TO RUN
+# PROJECT= docker run -dit --privileged --init -v ~/ubersandro/eval/fuzzing/openbabel --name openbabel-fsan gcr.io/oss-fuzz/openbabel:latest /bin/bash
