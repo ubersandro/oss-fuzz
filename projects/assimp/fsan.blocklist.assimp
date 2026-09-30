@@ -1,0 +1,5 @@
+class.pugi::xml_document
+class.aiMatrix4x4t
+class.aiVector3t
+class.aiMatrix3x3t
+struct.aiColor3D

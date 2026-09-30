@@ -18,13 +18,13 @@
 FROM fsan-afl:latest
 RUN apt-get update && apt-get install -y build-essential ruby bison ninja-build \
     cmake zlib1g-dev libbz2-dev liblzma-dev && apt-get clean && rm -rf /var/lib/apt/lists/*
-RUN git clone --depth 1 https://github.com/mruby/mruby mruby
+RUN git clone https://github.com/mruby/mruby mruby && cd mruby && git checkout 7184392b3e49bf6364c9851b9229d38a1e3f7ce1
 RUN git clone --depth 1 https://github.com/bshastry/mruby_seeds.git mruby_seeds
-RUN git clone --depth 1 https://github.com/google/libprotobuf-mutator.git
+RUN git clone https://github.com/google/libprotobuf-mutator.git && cd  libprotobuf-mutator && git checkout c1c950eae0440c3808f2b8bd7c57d0c6a42c1a90
 RUN mkdir LPM; \
   cd LPM; \
   cmake $SRC/libprotobuf-mutator -GNinja -DLIB_PROTO_MUTATOR_DOWNLOAD_PROTOBUF=ON -DLIB_PROTO_MUTATOR_TESTING=OFF -DCMAKE_BUILD_TYPE=Release; \
-  ninja;6
+  ninja;
 
 COPY *.sh $SRC/
 RUN chmod +x $SRC/*.sh

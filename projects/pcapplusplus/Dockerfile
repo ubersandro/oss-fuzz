@@ -18,11 +18,13 @@
 FROM fsan-afl:latest
 
 RUN apt-get update && apt-get install -y cmake autoconf flex bison && apt-get clean && rm -rf /var/lib/apt/lists/*
-RUN git clone --depth=1 https://github.com/seladb/PcapPlusPlus PcapPlusPlus
+RUN git clone  https://github.com/seladb/PcapPlusPlus PcapPlusPlus && cd PcapPlusPlus && git checkout ecfeacc
 
-# Get tcpdump's test pcaps as seed corpus
-RUN git clone --depth=1 https://github.com/the-tcpdump-group/tcpdump.git tcpdump
-RUN git clone --depth=1 https://github.com/the-tcpdump-group/libpcap.git libpcap
+# Get tcpdump's test pcaps as seed corpusPcapPlusPlus :ecfeacc
+# libpcap :0a47250
+# tcpdump :d42732d
+RUN git clone  https://github.com/the-tcpdump-group/tcpdump.git tcpdump && cd tcpdump && git checkout d42732d
+RUN git clone  https://github.com/the-tcpdump-group/libpcap.git libpcap && cd libpcap && git checkout 0a47250
 
 WORKDIR PcapPlusPlus
 

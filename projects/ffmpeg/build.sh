@@ -18,9 +18,6 @@
 # Disable UBSan vptr since several targets built with -fno-rtti.
 # export CFLAGS="$CFLAGS -fno-sanitize=vptr"
 # export CXXFLAGS="$CXXFLAGS -fno-sanitize=vptr"
-export CXXFLAGS="-Os -gline-tables-only -DFUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION -pthread -fno-common -fno-data-sections -fsanitize=hwaddress,fsan,fsan-heap -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -L/src/fsan/llvm-project/build/lib/ -stdlib=libc++ -nostdinc++ -isystem /src/fsan/llvm-project/build/include/c++/v1 -mllvm -verify-machineinstrs -mllvm -disable-loop-idiom-all -mllvm -vectorize-slp=0 -mllvm -instcombine-fsan=1 -mllvm -enable-sroa=1 -mllvm -sroa-skip-mem2reg=0 -mllvm -hwasan-instrument-byval=0 -mllvm -fsan-instrument-mem-access-aggressive-trimming=1 -Wno-unused-command-line-argument"
-
-export CFLAGS="-Os -gline-tables-only -DFUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION -pthread -fno-common -fno-data-sections -fsanitize=hwaddress,fsan,fsan-heap -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -L/src/fsan/llvm-project/build/lib/ -mllvm -verify-machineinstrs -mllvm -disable-loop-idiom-all -mllvm -vectorize-slp=0 -mllvm -instcombine-fsan=1 -mllvm -enable-sroa=1 -mllvm -sroa-skip-mem2reg=0 -mllvm -hwasan-instrument-byval=0 -mllvm -fsan-instrument-mem-access-aggressive-trimming=1 -Wno-unused-command-line-argument"
 
 export NM="/src/fsan/llvm-project/build/bin/llvm-nm"
 export AR="/src/fsan/llvm-project/build/bin/llvm-ar"
@@ -127,7 +124,8 @@ else
       LIBVPX_BUILD_ARGS=""
 fi
 
-LDFLAGS="$CXXFLAGS" ./configure --prefix="$FFMPEG_DEPS_PATH" \
+# specify AR, NM and AS to avoid using the system ones, which may be incompatible with the compiler used for building libvpx.
+AS= NM= AR= RANLIB= ./configure --prefix="$FFMPEG_DEPS_PATH" \
         --disable-docs --disable-examples --disable-tools --disable-unit-tests \
         --enable-vp9-highbitdepth \
         --size-limit=12288x12288 \
@@ -184,23 +182,20 @@ if [ "$SANITIZER" = "memory" ] || [ "$FUZZING_ENGINE" = "centipede" ]; then
   FFMPEG_BUILD_ARGS="$FFMPEG_BUILD_ARGS --disable-asm"
 fi
 
-NM="/src/fsan/llvm-project/build/bin/llvm-nm" \
-AR="/src/fsan/llvm-project/build/bin/llvm-ar" \
-AS="/src/fsan/llvm-project/build/bin/llvm-as" \
-RANLIB="/src/fsan/llvm-project/build/bin/llvm-ranlib" \
+# PS4='+ ${SECONDS}s ${BASH_SOURCE}:${LINENO}: ' \
+# NM="/src/fsan/llvm-project/build/bin/llvm-nm" \
+# AR="/src/fsan/llvm-project/build/bin/llvm-ar" \
+# AS="/src/fsan/llvm-project/build/bin/llvm-as" \
+# RANLIB="/src/fsan/llvm-project/build/bin/llvm-ranlib" \
 ./configure \
         --cc=$CC --cxx=$CXX  \
-        --nm="/src/fsan/llvm-project/build/bin/llvm-nm" \
-        --ar="/src/fsan/llvm-project/build/bin/llvm-ar" \
-        --as="/src/fsan/llvm-project/build/bin/llvm-as" \
-        --ranlib="/src/fsan/llvm-project/build/bin/llvm-ranlib" \
         --extra-cflags="-I$FFMPEG_DEPS_PATH/include" \
         --extra-ldflags="-L$FFMPEG_DEPS_PATH/lib $LDFLAGS" \
         --prefix="$FFMPEG_DEPS_PATH" \
         --pkg-config-flags="--static" \
         --enable-ossfuzz \
         --libfuzzer=$LIB_FUZZING_ENGINE \
-        --optflags=-Os \
+        --optflags=-O2 \
         --enable-gpl \
         --enable-nonfree \
         --enable-libass \
@@ -222,7 +217,7 @@ RANLIB="/src/fsan/llvm-project/build/bin/llvm-ranlib" \
         --disable-programs \
         --enable-demuxers \
         --samples=fate-suite/ \
-        $FFMPEG_BUILD_ARGS
+        $FFMPEG_BUILD_ARGS 2>&1 | tee build.log
 
 # Download test samples, will be used as seed corpus.
 # DISABLED.
@@ -355,7 +350,7 @@ make distclean
         --pkg-config-flags="--static" \
         --enable-ossfuzz \
         --libfuzzer=$LIB_FUZZING_ENGINE \
-        --optflags=-Os \
+        --optflags=-O2 \
         --enable-gpl \
         --enable-libxml2 \
         --disable-libdrm \

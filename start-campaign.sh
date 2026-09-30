@@ -60,11 +60,28 @@ pip install tqdm
 CORPUS_TMP_FILE="/tmp/corpus.${HARNESS_NAME}.zip"
 wget -O $CORPUS_TMP_FILE "https://storage.googleapis.com/${PROJECT_NAME}-backup.clusterfuzz-external.appspot.com/corpus/libFuzzer/${PROJECT_NAME}_${HARNESS_NAME}/public.zip" || wget -O $CORPUS_TMP_FILE "https://storage.googleapis.com/${PROJECT_NAME}-backup.clusterfuzz-external.appspot.com/corpus/libFuzzer/${HARNESS_NAME}/public.zip"
 
+if [ -f "$CORPUS_TMP_FILE" -a -s "$CORPUS_TMP_FILE" ]; then
+    echo "[+] CORPUS DOWNLOADED SUCCESSFULLY: $CORPUS_TMP_FILE"
+    stat $CORPUS_TMP_FILE
+else
+    # check if something like HARNESSS_NAME*zip exists in /fuzzing-campaign, if so, use that as corpus
+    if [ -d "/fuzzing-campaign" ]; then
+        CORPUS_TMP_FILE=$(ls /out/${HARNESS_NAME}*.zip 2>/dev/null | head -n 1)
+        if [ -f "$CORPUS_TMP_FILE" ]; then
+            echo "[+] CORPUS FOUND IN /fuzzing-campaign: $CORPUS_TMP_FILE"
+        else
+            exit 1
+        fi
+    fi
+fi
+# rm -rf "$CORPUS_DIR" 2>/dev/null || true # clear 
 CORPUS_DIR="$OUT/corpus-${HARNESS_NAME}"
-rm -rf "$CORPUS_DIR" 2>/dev/null || true # clear 
 unzip -o $CORPUS_TMP_FILE -d "$CORPUS_DIR" 2>&1 >/dev/null 2>&1 
 echo "[+] CORPUS DOWNLOADED AND UNPACKED! SIZE IS: $(ls $CORPUS_DIR | wc -l)"
-rm -rf $CORPUS_TMP_FILE 2>/dev/null || true
+# if corpus file is in /tmp, remove it to save space
+if [[ "$CORPUS_TMP_FILE" == "/tmp/corpus."*".zip" ]]; then
+    rm -f $CORPUS_TMP_FILE 2>/dev/null || true
+fi
 sleep 1
 
 #create filter dir
@@ -110,9 +127,16 @@ if [ "$(ls -A $CORPUS_DIR)" ]; then
     rm -rf "$MINIMIZED_DIR" 2>/dev/null || true
     echo "[+] MINIMIZING CORPUS WITH AFL-CMIN: CURRENT SIZE IS: $(ls $CORPUS_DIR | wc -l)"
     $AFL_BASE/afl-cmin -t $CMIN_TOUT -i "$CORPUS_DIR" -o "$MINIMIZED_DIR" -m none -T 24 -- $HARNESS_FULLPATH @@
-    echo "[+] CORPUS MINIMIZED: NEW SIZE IS: $(ls $MINIMIZED_DIR/ | wc -l)"
+    NEW_SIZE=$(ls $MINIMIZED_DIR/ | wc -l)
+    if [ $NEW_SIZE -eq 0 ]; then
+        echo "[!] MINIMIZATION FAILED, USING ORIGINAL CORPUS."
+        mv $CORPUS_DIR "$MINIMIZED_DIR" 2>/dev/null || true
+        CORPUS_DIR="$MINIMIZED_DIR"
+    else
+        echo "[+] MINIMIZATION SUCCEEDED, NEW SIZE IS: $NEW_SIZE"
+        CORPUS_DIR="$MINIMIZED_DIR"
+    fi
     sleep 1
-    CORPUS_DIR="$MINIMIZED_DIR"
 else
     echo "[+] CORPUS IS EMPTY, SKIPPING MINIMIZATION."
 fi

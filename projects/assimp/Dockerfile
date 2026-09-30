@@ -17,8 +17,11 @@
 # FROM gcr.io/oss-fuzz-base/base-builder
 FROM fsan-afl:latest
 RUN apt-get update && apt-get install -y cmake ninja-build zip && apt-get clean && rm -rf /var/lib/apt/lists/*
-RUN git clone --depth 1 --recursive https://github.com/assimp/assimp.git
+# RUN git clone --depth 1 --recursive https://github.com/assimp/assimp.git
+# clone assimp and checkout this specific commit f0013bd3a669956903159c9f5a85ecee092d3ec5
+RUN git clone --recursive https://github.com/assimp/assimp.git && cd assimp && git checkout f0013bd3a669956903159c9f5a85ecee092d3ec5
 WORKDIR assimp
 COPY build.sh run_tests.sh $SRC/
 RUN chmod +x $SRC/build.sh $SRC/run_tests.sh
-
+COPY fsan.blocklist.assimp $SRC/fsan.blocklist
+WORKDIR /src/assimp
