@@ -112,8 +112,8 @@ RUN chmod +x $SRC/collect-fuzzer-output.sh
 COPY oss-fuzz/post-processing.sh $SRC/post-processing.sh
 RUN chmod +x $SRC/post-processing.sh
 
-COPY oss-fuzz/gather-other.sh $SRC/gather-other.sh
-RUN chmod +x $SRC/gather-other.sh # script to find other crashes
+COPY oss-fuzz/collect-other.sh $SRC/collect-other.sh
+RUN chmod +x $SRC/collect-other.sh # script to find other crashes
 
 WORKDIR $SRC
 
