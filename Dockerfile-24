@@ -1,4 +1,4 @@
-FROM gcr.io/oss-fuzz-base/base-builder:ubuntu-24-04
+ FROM gcr.io/oss-fuzz-base/base-builder:ubuntu-24-04
 # gcr.io/oss-fuzz-base/base-builder:ubuntu-24-04@sha256:415ccd95bff8714ae7bd5b6989f2cbc159e9715f27284f763ddfae88b5e9997b
 ENV DEBIAN_FRONTEND=noninteractive
 ENV SANITIZER=none
