@@ -1,0 +1,5 @@
+fuzz_molecule
+fuzz_obconversion_sdf
+fuzz_smart
+fuzz_empty_write
+fuzz_obconversion_smiles

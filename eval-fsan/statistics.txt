@@ -1,0 +1,125 @@
+NUMBER OF VULNERABILITIES: 3126
+FIRST 10 VULNERABILITIES:
+       project              created         id
+0        mruby  Jul 15 2026 06:58PM  534984901
+1   javaparser  Jul 14 2026 06:09PM  534604845
+2    open62541  Jul 13 2026 04:39PM  534238141
+3       libyal  Jul 12 2026 05:14PM  533963824
+4      freerdp  Jul 12 2026 04:17PM  533963816
+5     wolfmqtt  Jul 12 2026 03:33AM  533801477
+6  ghostscript  Jul 11 2026 04:16PM  533657979
+7     binutils  Jul 11 2026 03:46AM  533502631
+8  libreoffice  Jul 10 2026 02:35PM  533311278
+9         llvm  Jul 10 2026 02:27PM  533298000
+MIN TIME: 2024-07-15 02:20:00
+MAX TIME: 2026-07-15 18:58:00
+PROJECT RANKING:
+LANGUAGES FROM GITHUB API: ['C', 'Assembly', 'Makefile', 'GLSL', 'C++', 'Cuda', 'Objective-C', 'Shell', 'Perl', 'JavaScript', 'Python', 'CSS', 'HTML', 'Metal', 'Awk', 'Ruby', 'Roff', 'Verilog', 'TypeScript']
+PROJECT:ffmpeg, COUNT:201, LANGUAGE (from YAML):c++, LANGUAGE (from GitHub API):c
+LANGUAGES FROM GITHUB API: ['Java', 'HTML', 'Shell', 'JavaScript', 'ANTLR', 'Groovy', 'CSS', 'Batchfile', 'Perl', 'Ruby', 'C++']
+PROJECT:checkstyle, COUNT:159, LANGUAGE (from YAML):jvm, LANGUAGE (from GitHub API):java
+LANGUAGES FROM GITHUB API: ['C', 'Ruby', 'C++', 'Shell', 'Batchfile', 'Pawn', 'Makefile', 'Dockerfile']
+PROJECT:mruby, COUNT:95, LANGUAGE (from YAML):c++, LANGUAGE (from GitHub API):c
+LANGUAGES FROM GITHUB API: ['C', 'HTML', 'Makefile', 'C++', 'Shell', 'XS', 'M4', 'Roff', 'Perl', 'Tcl', 'DIGITAL Command Language', 'Dockerfile']
+PROJECT:imagemagick, COUNT:84, LANGUAGE (from YAML):c++, LANGUAGE (from GitHub API):c
+LANGUAGES FROM GITHUB API: ['C', 'HTML', 'JavaScript', 'C++', 'Roff', 'Python', 'Makefile', 'Java', 'GLSL', 'CSS', 'Objective-C', 'Shell', 'NSIS', 'Rez', 'Batchfile', 'Dockerfile', 'Nix']
+PROJECT:gpac, COUNT:77, LANGUAGE (from YAML):c, LANGUAGE (from GitHub API):c
+PROJECT:kimageformats, COUNT:68, LANGUAGE (from YAML):c++, LANGUAGE (from GitHub API):None
+LANGUAGES FROM GITHUB API: ['C++', 'Python', 'CMake', 'C', 'Shell', 'Batchfile', 'PowerShell']
+PROJECT:pcapplusplus, COUNT:64, LANGUAGE (from YAML):c++, LANGUAGE (from GitHub API):c++
+LANGUAGES FROM GITHUB API: ['C++', 'COBOL', 'C', 'Python', 'CMake', 'Java', 'D', 'Assembly', 'Rich Text Format', 'Ada', 'Pascal', 'C#', 'Starlark', 'Shell', 'Inno Setup', 'Batchfile', 'Makefile', 'GLSL', 'JavaScript', 'Roff', 'SCSS', 'HTML', 'Rust', 'UnrealScript', 'Dockerfile', 'DIGITAL Command Language', 'M4', 'ShaderLab', 'Smarty']
+PROJECT:assimp, COUNT:58, LANGUAGE (from YAML):c++, LANGUAGE (from GitHub API):c++
+PROJECT:graphicsmagick, COUNT:53, LANGUAGE (from YAML):c++, LANGUAGE (from GitHub API):None
+LANGUAGES FROM GITHUB API: ['C', 'C++', 'Objective-C', 'QML', 'Makefile', 'Meson', 'M4', 'Lua', 'Shell', 'Assembly', 'NSIS', 'JavaScript', 'Rust', 'Python', 'Objective-C++', 'GLSL', 'HTML', 'Yacc', 'CSS', 'Lex', 'Vim Script', 'Metal', 'Perl', 'QMake', 'SmPL', 'SRecode Template']
+PROJECT:vlc, COUNT:50, LANGUAGE (from YAML):c, LANGUAGE (from GitHub API):c
+LANGUAGES FROM GITHUB API: ['Java', 'Gherkin', 'Shell']
+PROJECT:javaparser, COUNT:49, LANGUAGE (from YAML):jvm, LANGUAGE (from GitHub API):java
+Failed to fetch languages from GitHub API for https://github.com/bminor/binutils-gdb. Status code: 404
+PROJECT:binutils, COUNT:45, LANGUAGE (from YAML):c++, LANGUAGE (from GitHub API):None
+PROJECT:ghostscript, COUNT:41, LANGUAGE (from YAML):c++, LANGUAGE (from GitHub API):None
+LANGUAGES FROM GITHUB API: ['C', 'JavaScript', 'Python', 'Makefile', 'Shell']
+PROJECT:quickjs, COUNT:38, LANGUAGE (from YAML):c, LANGUAGE (from GitHub API):c
+Failed to fetch languages from GitHub API for https://github.com/openbabel/openbabel.git. Status code: 404
+PROJECT:openbabel, COUNT:38, LANGUAGE (from YAML):c++, LANGUAGE (from GitHub API):None
+Failed to fetch languages from GitHub API for https://github.com/ntop/nDPI.git. Status code: 404
+PROJECT:ndpi, COUNT:34, LANGUAGE (from YAML):c++, LANGUAGE (from GitHub API):None
+Failed to fetch languages from GitHub API for https://github.com/llvm/llvm-project.git. Status code: 404
+PROJECT:llvm, COUNT:33, LANGUAGE (from YAML):c++, LANGUAGE (from GitHub API):None
+LANGUAGES FROM GITHUB API: ['C++', 'Python', 'C', 'SWIG', 'CMake', 'Java', 'Shell', 'C#', 'Dockerfile', 'QML', 'Yacc', 'HTML', 'F*', 'Perl', 'Game Maker Language', 'Pawn', 'XSLT', 'Roff', 'AGS Script', 'Makefile', 'RouterOS Script', 'Batchfile', 'PowerShell', 'TeX']
+PROJECT:gdal, COUNT:30, LANGUAGE (from YAML):c++, LANGUAGE (from GitHub API):c++
+Failed to fetch languages from GitHub API for https://github.com/harfbuzz/harfbuzz.git. Status code: 404
+PROJECT:harfbuzz, COUNT:29, LANGUAGE (from YAML):c++, LANGUAGE (from GitHub API):None
+LANGUAGES FROM GITHUB API: ['C', 'Fortran', 'CMake', 'M4', 'Makefile', 'Shell', 'C++', 'Python', 'MATLAB']
+PROJECT:matio, COUNT:28, LANGUAGE (from YAML):c++, LANGUAGE (from GitHub API):c
+LANGUAGES FROM GITHUB API: ['Ruby', 'C', 'Rust', 'C++', 'Yacc', 'HTML', 'Makefile', 'M4', 'Roff', 'Go Template', 'Python', 'GDB', 'Batchfile', 'Assembly', 'Shell', 'Emacs Lisp', 'Scheme', 'Raku', 'Perl', 'sed', 'Dockerfile']
+PROJECT:ruby, COUNT:28, LANGUAGE (from YAML):c++, LANGUAGE (from GitHub API):ruby
+PROJECT:gpsd, COUNT:27, LANGUAGE (from YAML):c, LANGUAGE (from GitHub API):None
+Failed to fetch languages from GitHub API for https://github.com/apache/poi.git. Status code: 404
+PROJECT:apache-poi, COUNT:26, LANGUAGE (from YAML):jvm, LANGUAGE (from GitHub API):None
+Failed to fetch languages from GitHub API for https://github.com/opencv/opencv.git. Status code: 404
+PROJECT:opencv, COUNT:26, LANGUAGE (from YAML):c++, LANGUAGE (from GitHub API):None
+LANGUAGES FROM GITHUB API: ['Java', 'HTML', 'Python', 'Lex', 'Perl', 'Shell', 'C', 'JavaScript', 'Groovy', 'Makefile', 'ANTLR', 'CSS', 'Gnuplot', 'Batchfile', 'Jinja', 'Emacs Lisp']
+PROJECT:lucene, COUNT:25, LANGUAGE (from YAML):jvm, LANGUAGE (from GitHub API):java
+Failed to fetch languages from GitHub API for https://github.com/GrokImageCompression/grok.git. Status code: 404
+PROJECT:grok, COUNT:25, LANGUAGE (from YAML):c++, LANGUAGE (from GitHub API):None
+PROJECT:wireshark, COUNT:23, LANGUAGE (from YAML):c++, LANGUAGE (from GitHub API):None
+LANGUAGES FROM GITHUB API: ['C++', 'C', 'M4', 'QMake', 'Makefile', 'Shell', 'Perl']
+PROJECT:libraw, COUNT:23, LANGUAGE (from YAML):c++, LANGUAGE (from GitHub API):c++
+LANGUAGES FROM GITHUB API: ['C', 'Lua', 'Swift', 'Meson', 'Python', 'Objective-C', 'Shell', 'JavaScript', 'C++', 'PowerShell', 'Batchfile']
+PROJECT:mpv, COUNT:22, LANGUAGE (from YAML):c, LANGUAGE (from GitHub API):c
+Failed to fetch languages from GitHub API for https://github.com/hathach/tinyusb.git. Status code: 404
+PROJECT:tinyusb, COUNT:22, LANGUAGE (from YAML):c++, LANGUAGE (from GitHub API):None
+Failed to fetch languages from GitHub API for https://github.com/php/php-src.git. Status code: 404
+PROJECT:php, COUNT:21, LANGUAGE (from YAML):c++, LANGUAGE (from GitHub API):None
+Failed to fetch languages from GitHub API for https://github.com/strukturag/libheif.git. Status code: 404
+PROJECT:libheif, COUNT:21, LANGUAGE (from YAML):c++, LANGUAGE (from GitHub API):None
+LANGUAGES FROM GITHUB API: ['C', 'C++', 'Python', 'CMake', 'Shell', 'Starlark', 'M4', 'Batchfile', 'HTML', 'CSS']
+PROJECT:openexr, COUNT:21, LANGUAGE (from YAML):c++, LANGUAGE (from GitHub API):c
+Failed to fetch languages from GitHub API for https://github.com/bytecodealliance/wasm-micro-runtime.git. Status code: 404
+PROJECT:wamr, COUNT:21, LANGUAGE (from YAML):c, LANGUAGE (from GitHub API):None
+PROJECT:poppler, COUNT:20, LANGUAGE (from YAML):c++, LANGUAGE (from GitHub API):None
+PROJECT:libreoffice, COUNT:20, LANGUAGE (from YAML):c++, LANGUAGE (from GitHub API):None
+Failed to fetch languages from GitHub API for https://github.com/google/shaderc.git. Status code: 404
+PROJECT:shaderc, COUNT:20, LANGUAGE (from YAML):c++, LANGUAGE (from GitHub API):None
+LANGUAGES FROM GITHUB API: ['C++', 'C', 'Objective-C++', 'CMake', 'GLSL', 'Lex', 'Objective-C', 'Python', 'SWIG', 'Yacc', 'HTML', 'HLSL', 'Rust', 'Rich Text Format', 'Metal', 'Batchfile', 'Dockerfile', 'Makefile']
+PROJECT:ogre, COUNT:20, LANGUAGE (from YAML):c++, LANGUAGE (from GitHub API):c++
+LANGUAGES FROM GITHUB API: ['Java', 'TypeScript', 'FreeMarker', 'JavaScript', 'Shell', 'CSS', 'XSLT', 'mupad', 'Dockerfile', 'Mustache', 'Groovy', 'ANTLR', 'HTML', 'Batchfile', 'Open Policy Agent']
+PROJECT:keycloak, COUNT:19, LANGUAGE (from YAML):jvm, LANGUAGE (from GitHub API):java
+LANGUAGES FROM GITHUB API: ['C', 'Shell', 'CMake', 'Makefile', 'Python', 'C++', 'Yacc', 'Lex', 'Perl', 'XS', 'SIP', 'M4', 'Roff', 'PHP', 'Lua', 'PLpgSQL', 'Vim Script', 'JavaScript', 'Ruby', 'Dockerfile', 'Ragel', 'Go Template', 'Awk', 'HTML', 'GDB']
+PROJECT:kamailio, COUNT:18, LANGUAGE (from YAML):c, LANGUAGE (from GitHub API):c
+PROJECT:net-snmp, COUNT:18, LANGUAGE (from YAML):c++, LANGUAGE (from GitHub API):None
+LANGUAGES FROM GITHUB API: ['C', 'M4', 'C++', 'CMake', 'Python', 'Makefile', 'Haskell', 'Shell', 'BitBake', 'Lua', 'NASL', 'PHP']
+PROJECT:libucl, COUNT:17, LANGUAGE (from YAML):c, LANGUAGE (from GitHub API):c
+Failed to fetch languages from GitHub API for https://github.com/apache/maven.git. Status code: 404
+PROJECT:maven-model, COUNT:17, LANGUAGE (from YAML):jvm, LANGUAGE (from GitHub API):None
+LANGUAGES FROM GITHUB API: ['C', 'Assembly', 'Rust', 'C#', 'Shell', 'SWIG', 'CMake', 'M4', 'Python', 'Makefile', 'Ada', 'C++', 'Perl', 'Cuda', 'Batchfile', 'Handlebars', 'FreeMarker', 'Linker Script', 'Tcl', 'Objective-C', 'Euphoria', 'Dockerfile', 'PowerShell', 'JavaScript', 'Swift', 'BitBake', 'XS']
+PROJECT:wolfssl, COUNT:16, LANGUAGE (from YAML):c++, LANGUAGE (from GitHub API):c
+LANGUAGES FROM GITHUB API: ['Lua', 'C', 'C++', 'CMake', 'Python', 'TLA', 'Shell', 'Yacc', 'Makefile', 'Perl', 'Ragel', 'Dockerfile', 'Rich Text Format', 'GDB']
+PROJECT:tarantool, COUNT:16, LANGUAGE (from YAML):c, LANGUAGE (from GitHub API):lua
+Failed to fetch languages from GitHub API for https://github.com/freetype/freetype2-testing.git. Status code: 404
+PROJECT:freetype2, COUNT:16, LANGUAGE (from YAML):c++, LANGUAGE (from GitHub API):None
+LANGUAGES FROM GITHUB API: ['C', 'SWIG', 'Shell', 'M4', 'Perl', 'Makefile', 'CMake', 'Python', 'Roff', 'Common Lisp', 'Batchfile', 'Dockerfile', 'HTML']
+PROJECT:libredwg, COUNT:16, LANGUAGE (from YAML):c, LANGUAGE (from GitHub API):c
+LANGUAGES FROM GITHUB API: ['C', 'Assembly', 'Java', 'CMake', 'C++', 'Shell']
+PROJECT:libjpeg-turbo, COUNT:16, LANGUAGE (from YAML):c, LANGUAGE (from GitHub API):c
+LANGUAGES FROM GITHUB API: ['C', 'Python', 'Roff', 'Shell', 'SWIG', 'Makefile', 'Yacc', 'Lex']
+PROJECT:selinux, COUNT:16, LANGUAGE (from YAML):c, LANGUAGE (from GitHub API):c
+Failed to fetch languages from GitHub API for https://github.com/FasterXML/jackson-databind.git. Status code: 404
+PROJECT:jackson-databind, COUNT:15, LANGUAGE (from YAML):jvm, LANGUAGE (from GitHub API):None
+LANGUAGES FROM GITHUB API: ['Rust', 'WebAssembly', 'Common Lisp', 'C++', 'C', 'Shell', 'JavaScript', 'CMake', 'Dockerfile', 'OCaml', 'CSS', 'Makefile', 'Python']
+PROJECT:wasmtime, COUNT:15, LANGUAGE (from YAML):rust, LANGUAGE (from GitHub API):rust
+Failed to fetch languages from GitHub API for https://github.com/open62541/open62541.git. Status code: 404
+PROJECT:open62541, COUNT:15, LANGUAGE (from YAML):c++, LANGUAGE (from GitHub API):None
+LANGUAGES FROM GITHUB API: ['C', 'C++', 'Python', 'Meson', 'Shell']
+PROJECT:libvips, COUNT:15, LANGUAGE (from YAML):c++, LANGUAGE (from GitHub API):c
+Failed to fetch languages from GitHub API for https://github.com/apache/arrow.git. Status code: 404
+PROJECT:arrow, COUNT:15, LANGUAGE (from YAML):c++, LANGUAGE (from GitHub API):None
+PROJECT:cbor-java, COUNT:14, LANGUAGE (from YAML):jvm, LANGUAGE (from GitHub API):None
+Failed to fetch languages from GitHub API for https://github.com/Blosc/c-blosc2.git. Status code: 404
+PROJECT:c-blosc2, COUNT:14, LANGUAGE (from YAML):c++, LANGUAGE (from GitHub API):None
+Failed to fetch languages from GitHub API for https://github.com/nginx/njs.git. Status code: 404
+PROJECT:njs, COUNT:14, LANGUAGE (from YAML):c++, LANGUAGE (from GitHub API):None
+PROJECT:libvpx, COUNT:14, LANGUAGE (from YAML):c++, LANGUAGE (from GitHub API):None
+PROJECT:libxml2, COUNT:13, LANGUAGE (from YAML):c++, LANGUAGE (from GitHub API):None
+LANGUAGES FROM GITHUB API: ['C', 'Shell', 'M4', 'Makefile', 'Objective-C', 'C++', 'Roff', 'Dockerfile', 'Lex', 'CMake', 'PowerShell', 'AppleScript', 'BitBake']
+PROJECT:opensc, COUNT:13, LANGUAGE (from YAML):c++, LANGUAGE (from GitHub API):c

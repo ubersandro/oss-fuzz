@@ -1,0 +1,2 @@
+mruby_fuzzer
+mruby_proto_fuzzer
