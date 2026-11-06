@@ -23,5 +23,5 @@ RUN git clone --recursive https://github.com/assimp/assimp.git && cd assimp && g
 WORKDIR assimp
 COPY build.sh run_tests.sh $SRC/
 RUN chmod +x $SRC/build.sh $SRC/run_tests.sh
-COPY fsan.blocklist.assimp $SRC/fsan.blocklist
+# COPY fsan.blocklist.assimp $SRC/fsan.blocklist
 WORKDIR /src/assimp

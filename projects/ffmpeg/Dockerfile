@@ -32,7 +32,7 @@ RUN python3 -m pip install --upgrade pip && python3 -m pip install -U meson==1.1
 
 RUN git clone  https://github.com/FFmpeg/FFmpeg ffmpeg && cd ffmpeg && git checkout 98e45d6
 # REPLACE char reserved_internal_buffer[1]; with char reserved_internal_buffer[1004]; in file libavutil/bprint.h
-RUN sed -i 's/char reserved_internal_buffer\[1\];/char reserved_internal_buffer[1004];/' ffmpeg/libavutil/bprint.h
+# RUN sed -i 's/char reserved_internal_buffer\[1\];/char reserved_internal_buffer[1004];/' ffmpeg/libavutil/bprint.h
 # patch needed for 
 # bzip2 :bf905ea
 # fdk-aac :d8e6b1a

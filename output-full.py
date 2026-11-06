@@ -10,6 +10,7 @@ compiled with -fsanitize-recover=hwaddress so that recover_report=summary works.
 import os
 import re
 import subprocess
+import random
 import sys
 from pathlib import Path
 VERBOSE = os.environ.get("REPORT_VERBOSE", "0") == "1"
@@ -89,14 +90,12 @@ def replay(binary, crash_input):
         return None, ""
     return result.returncode, result.stdout
 
-def classify(fuzzer, folder, first_hit, suffix=None):
+def classify(fuzzer, folder, first_hit, suffix=None, logfile=sys.stderr):
     """Replay the inputs in folder, recording new locations in first_hit."""
     if not folder.is_dir():
         log(f"# SKIP {folder}: not a directory")
         return
     inputs = list_inputs(folder, suffix)
-    log(f"# CRASHES for FUZZER {fuzzer} in folder {folder}: {len(inputs)}")
-
     for crash_input in inputs:
         code, output = replay(OUT_DIR / fuzzer, crash_input)
         if code is None:
@@ -107,28 +106,27 @@ def classify(fuzzer, folder, first_hit, suffix=None):
                 log(f"# NO REPRO: {crash_input}")
             continue
         locations, dropped = parse_locations(output)
-        # if dropped:
-        #     log(f"# DROPPED VIOLATIONS: {crash_input}")
-        # if not locations and VERBOSE:
-        #     log(f"# NO FSAN SUMMARY (exit code {code}): {crash_input}")
         for location in locations:
             if location not in first_hit:
-                # nonsymb per-fuzzer location
                 first_hit[location] = (fuzzer, crash_input)
-                
-                # print(f"{crash_input}: {location}")
-                # try:
-                #     filepath = location.split(" ")[-1]
-                #     file_path, line_number = filepath.rsplit(":", 2)[:2]
-                #     line_number = int(line_number)
-                #     with open(file_path) as f:
-                #         lines = f.readlines()
-                #         if 1 <= line_number <= len(lines):
-                #             print(f"#\t\t{lines[line_number - 1].rstrip()}" , flush=True)
-                # except Exception:
-                #     pass
-
-
+        # copy crashing input to /fuzzing-campaign/triage/others/FUZZER_NAME.hash
+        # create folder new_path = Path(f"/fuzzing-campaign/triage/others/")
+        md5_hash = subprocess.run(
+                            ["md5sum", str(crash_input)],
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE,
+                            text=True,
+                        ).stdout.split()[0]
+        newfolder = Path(f"/fuzzing-campaign/triage/others/")
+        newfolder.mkdir(parents=True, exist_ok=True)
+        
+        new_name = f"{fuzzer}.{md5_hash}"
+        new_path = Path(f"/fuzzing-campaign/triage/others/{new_name}")
+        new_path.parent.mkdir(parents=True, exist_ok=True)
+        subprocess.run(
+                ["cp", str(crash_input), str(new_path)],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE)
 def main():
     fuzzer_list = []
     for path in Path("/fuzzing-campaign").iterdir():
@@ -137,37 +135,70 @@ def main():
     if not fuzzer_list:
         sys.exit(f"no fuzzers found in /fuzzing-campaign")
     global_symb_locs = {} # collect unique locations across all fuzzers
-    
-    for fuzzer in fuzzer_list:
-        uniq_symb_locs = {} # collect unique locations per fuzzer first
-        log(f"# CLASSIFYING CRASHES FOR {fuzzer}")
-        os.environ["HWASAN_OPTIONS"] = HWOPT_NOSYM
-        classify(fuzzer, Path(f"/crashes-{fuzzer}"), uniq_symb_locs, "99")
-        # find out how many crashes* directories are there from prev. campaigns under /fuzzing-campaign/fuzzer_0/default/crashes*
-        for c in Path(f"/fuzzing-campaign/{fuzzer}_0/default").iterdir():
-            if c.is_dir() and c.name.startswith("crashes"):
-                classify(fuzzer, c, uniq_symb_locs, None)
-        # classify(fuzzer, Path(f"/fuzzing-campaign/{fuzzer}_0/default/crashes"), uniq_symb_locs, None)
-        os.environ["HWASAN_OPTIONS"] = HWOPT_SYM
-        print("Unique locations for fuzzer", fuzzer, file=sys.stderr)
-        for location, (fuzzer, crash_input) in uniq_symb_locs.items():
-            code, output = replay(OUT_DIR / fuzzer, crash_input)
-            locations, dropped = parse_locations(output)
-            for symb_location in locations:
-                if symb_location not in global_symb_locs:
-                    global_symb_locs[symb_location] = (fuzzer, crash_input)
-                    print(f"{fuzzer} {crash_input}: {symb_location}")
-                    # open file, read at that line number and print it
-                    try:
-                        filepath = symb_location.split(" ")[-1]
-                        file_path, line_number = filepath.rsplit(":", 2)[:2]
-                        line_number = int(line_number)
-                        with open(file_path) as f:
-                            lines = f.readlines()
-                            if 1 <= line_number <= len(lines):
-                                print(f"#\t\t{lines[line_number - 1].rstrip()}" , flush=True)
-                    except Exception:
-                        pass
+    logfile = Path(f"/fuzzing-campaign/triage/TRIAGE.log")
+    logfile.parent.mkdir(parents=True, exist_ok=True)
+    # open to overwrite, discard prev. content
+    with logfile.open("w") as logf:
+        for fuzzer in fuzzer_list:
+            uniq_symb_locs = {} # collect unique locations per fuzzer first
+            os.environ["HWASAN_OPTIONS"] = HWOPT_NOSYM
+            
+            # dump crashes from oss-fuzz queues all campaigns
+            classify(fuzzer, Path(f"/crashes-{fuzzer}"), uniq_symb_locs, "99")
+            for c in Path(f"/fuzzing-campaign/{fuzzer}_0/default").iterdir():
+                if c.is_dir() and c.name.startswith("crashes"):
+                    classify(fuzzer, c, uniq_symb_locs, None)
+            
+            os.environ["HWASAN_OPTIONS"] = HWOPT_SYM
+            for location, (fuzzer, crash_input) in uniq_symb_locs.items():
+                code, output = replay(OUT_DIR / fuzzer, crash_input)
+                locations, dropped = parse_locations(output)
+                for symb_location in locations:
+                    if symb_location not in global_symb_locs:
+                        global_symb_locs[symb_location] = (fuzzer, crash_input)
+                        # copy the file under /fuzzing-campaign/triage/FUZZER_NAME.hash, where has is md5 of name of input and then print OLD_NAME -> NEW_NAME
+                        md5_hash = subprocess.run(
+                            ["md5sum", str(crash_input)],
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE,
+                            text=True,
+                        ).stdout.split()[0]
+                        
+                        new_name = f"{fuzzer}.{md5_hash}"
+                        new_path = Path(f"/fuzzing-campaign/triage/{new_name}")
+                        new_path.parent.mkdir(parents=True, exist_ok=True)
+                        if not new_path.exists():
+                            subprocess.run(
+                                ["cp", str(crash_input), str(new_path)],
+                                stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE,
+                            )
+                        else:
+                            # rename and copy
+                            new_name = f"{fuzzer}.{md5_hash}." + random.randint(1000, 9999).__str__()
+                            new_path = Path(f"/fuzzing-campaign/triage/{new_name}")
+                            subprocess.run(
+                                ["cp", str(crash_input), str(new_path)],
+                                stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE,
+                            )
+                        full_new_path = new_path.resolve()
+                        print(f"{fuzzer} {full_new_path}: {symb_location}")
+                        logf.write(f"{fuzzer} {full_new_path}: {symb_location}\n")
+
+                        
+                        try:
+                            filepath = symb_location.split(" ")[-1]
+                            file_path, line_number = filepath.rsplit(":", 2)[:2]
+                            line_number = int(line_number)
+                            with open(file_path) as f:
+                                lines = f.readlines()
+                                if 1 <= line_number <= len(lines):
+                                    print(f"#\t\t{lines[line_number - 1].rstrip()}" , flush=True)
+                                    logf.write(f"#\t\t{lines[line_number - 1].rstrip()}\n")
+                        except Exception:
+                            pass
+        print(f"# DISTINCT LOCATIONS: {len(global_symb_locs)}", file=logf)
     
     log(f"# DISTINCT LOCATIONS: {len(global_symb_locs)}")
 

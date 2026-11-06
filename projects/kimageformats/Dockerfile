@@ -78,4 +78,4 @@ WORKDIR $SRC/kimageformats
 # StaticContent*
 # QColorMatrix
 # QColorVector
-RUN echo "class.QUninitialized\nstruct.QHashPrivate::Span\nstruct.QMetaObject::Data\nStaticContent*\nQColorMatrix\nQColorVector" > $SRC/fsan.blocklist
+# RUN echo "class.QUninitialized\nstruct.QHashPrivate::Span\nstruct.QMetaObject::Data\nStaticContent*\nQColorMatrix\nQColorVector" > $SRC/fsan.blocklist
