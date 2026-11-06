@@ -15,7 +15,7 @@
 ################################################################################
 
 # FROM gcr.io/oss-fuzz-base/base-builder
-FROM fsan-afl:latest
+FROM fsan-afl-codeql:latest
 
 RUN apt-get update && apt-get install -y cmake autoconf flex bison && apt-get clean && rm -rf /var/lib/apt/lists/*
 RUN git clone  https://github.com/seladb/PcapPlusPlus PcapPlusPlus && cd PcapPlusPlus && git checkout ecfeacc

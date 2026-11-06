@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 ################################################################################
-
+set -x
 build_dir=$WORK/build-$SANITIZER
 install_dir=$WORK/install-$SANITIZER
 
@@ -28,7 +28,6 @@ cmake -D CMAKE_BUILD_TYPE=Release -D CMAKE_INSTALL_PREFIX=$install_dir \
 make -j$(nproc)
 make install
 popd
-
 pushd $SRC
 for fuzzer in core_fuzzer filestorage_read_file_fuzzer \
    filestorage_read_filename_fuzzer filestorage_read_string_fuzzer \

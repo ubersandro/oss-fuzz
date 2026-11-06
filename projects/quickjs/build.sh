@@ -3,8 +3,7 @@
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
+w#
 #      http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
@@ -17,9 +16,10 @@
 
 # build quickjs
 # Makefile should not override CFLAGS
-sed -i -e 's/CFLAGS=/CFLAGS+=/' Makefile
-sed -i -e 's/#define USE_WORKER/\/\/#define USE_WORKER/' quickjs-libc.c
-CONFIG_CLANG=y make libquickjs.fuzz.a .obj/fuzz_common.o .obj/libregexp.fuzz.o .obj/cutils.fuzz.o .obj/libunicode.fuzz.o
+# sed -i -e 's/CFLAGS=/CFLAGS+=/' Makefile
+# sed -i -e 's/#define USE_WORKER/\/\/#define USE_WORKER/' quickjs-libc.c
+sed -i 's/JS_SetModuleLoaderFunc(rt, NULL, js_module_loader, NULL);/JS_SetModuleLoaderFunc2(rt, NULL, js_module_loader, js_module_check_attributes, NULL);/' fuzz/fuzz_common.c
+CONFIG_CLANG=y make CC="$CC" libquickjs.fuzz.a .obj/fuzz_common.o .obj/libregexp.fuzz.o .obj/cutils.fuzz.o .obj/libunicode.fuzz.o
 zip -r $OUT/fuzz_eval_seed_corpus.zip $SRC/quickjs-corpus/js/*.js
 zip -r $OUT/fuzz_compile_seed_corpus.zip $SRC/quickjs-corpus/js/*.js
 

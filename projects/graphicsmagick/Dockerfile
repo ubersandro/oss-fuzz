@@ -14,7 +14,7 @@
 #
 ################################################################################
 
-FROM gcr.io/oss-fuzz-base/base-builder
+FROM fsan-afl-codeql:latest
 
 # Needed tools
 RUN apt-get update && \

@@ -1,0 +1,33 @@
+ARG BASE=fsan-afl:latest
+FROM ${BASE}
+ENV DEBIAN_FRONTEND=noninteractive
+
+# install codeql and set it up
+RUN apt-get update && apt-get install -y \
+    wget \
+    unzip \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# CLI and C/C++ library pinned to the versions in codeql-struct-punning/codeql-pack.lock.yml
+ARG CODEQL_VERSION=2.27.3
+ARG CODEQL_CPP_ALL=5.6.1
+ENV CODEQL_HOME=/opt/codeql
+RUN wget -q https://github.com/github/codeql-cli-binaries/releases/download/v${CODEQL_VERSION}/codeql-linux64.zip -O /tmp/codeql.zip \
+    && unzip -q /tmp/codeql.zip -d /opt \
+    && rm /tmp/codeql.zip \
+    && ln -s ${CODEQL_HOME}/codeql /usr/local/bin/codeql \
+    && codeql version
+
+# Packs are fetched at build time so analysis runs offline. They go to the
+# package cache (~/.codeql/packages, OSS-Fuzz runs as root), the only place
+# where packs with a codeql-pack.lock.yml look up their pinned dependencies.
+# `pack download` skips a library's dependencies; installing a stub pack does not.
+RUN codeql pack download codeql/cpp-queries \
+    && mkdir /tmp/stub \
+    && printf 'name: stub/stub\nversion: 0.0.0\ndependencies:\n  codeql/cpp-all: "%s"\n' ${CODEQL_CPP_ALL} > /tmp/stub/qlpack.yml \
+    && codeql pack install /tmp/stub \
+    && rm -rf /tmp/stub \
+    && ls ~/.codeql/packages/codeql
+
+COPY oss-fuzz/codeql-oss-fuzz /usr/local/bin/codeql-oss-fuzz
+RUN chmod +x /usr/local/bin/codeql-oss-fuzz

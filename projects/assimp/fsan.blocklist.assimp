@@ -3,3 +3,5 @@ class.aiMatrix4x4t
 class.aiVector3t
 class.aiMatrix3x3t
 struct.aiColor3D
+class.aiColor4t
+struct.Assimp::Blender::ElemBase

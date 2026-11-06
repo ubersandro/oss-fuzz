@@ -1,0 +1,127 @@
+PROJECT:ffmpeg
+RUN git clone  https://github.com/FFmpeg/FFmpeg ffmpeg && cd ffmpeg && git checkout 98e45d6
+RUN git clone  https://github.com/mstorsjo/fdk-aac.git && cd fdk-aac && git checkout d8e6b1a
+RUN git clone  https://gitlab.freedesktop.org/fontconfig/fontconfig.git && cd fontconfig && git checkout d32a191
+RUN git clone  https://gitlab.freedesktop.org/freetype/freetype.git && cd freetype && git checkout 9e9d3b7
+RUN git clone  https://github.com/fribidi/fribidi && cd fribidi && git checkout ee2edf7
+RUN git clone  https://github.com/harfbuzz/harfbuzz && cd harfbuzz && git checkout d8dabe2
+RUN git clone  https://github.com/libass/libass && cd libass && git checkout 3087d2b
+RUN git clone  https://github.com/madler/zlib && cd zlib && git checkout e3dc0a8
+RUN git clone https://gitlab.com/federicomenaquintero/bzip2 && cd bzip2 && git checkout bf905ea
+RUN git clone  https://chromium.googlesource.com/webm/libvpx && cd libvpx && git checkout 9cc8e1c
+RUN git clone  https://gitlab.xiph.org/xiph/ogg.git && cd ogg && git checkout 06a5e02
+RUN git clone  https://gitlab.xiph.org/xiph/opus.git && cd opus && git checkout 3da9f7a
+RUN git clone  https://gitlab.xiph.org/xiph/theora.git && cd theora && git checkout 28fd5ec
+RUN git clone  https://gitlab.xiph.org/xiph/vorbis.git && cd vorbis && git checkout 1b75110
+RUN git clone  https://gitlab.gnome.org/GNOME/libxml2.git && cd libxml2 && git checkout c632489
+PROJECT:mruby
+RUN git clone https://github.com/mruby/mruby mruby && cd mruby && git checkout 7184392b3e49bf6364c9851b9229d38a1e3f7ce1
+RUN git clone --depth 1 https://github.com/bshastry/mruby_seeds.git mruby_seeds
+RUN git clone https://github.com/google/libprotobuf-mutator.git && cd  libprotobuf-mutator && git checkout c1c950eae0440c3808f2b8bd7c57d0c6a42c1a90
+PROJECT:imagemagick
+RUN git clone  https://github.com/imagemagick/imagemagick &&cd imagemagick && git checkout 8d1fdcb46b8a29ad1297b0925c915fd8efcb1a60
+RUN git clone  https://gitlab.com/libtiff/libtiff && cd libtiff && git checkout 1ac62678
+RUN git clone  https://github.com/strukturag/libde265 && cd libde265 && git checkout 4d45a6b
+RUN git clone  https://github.com/strukturag/libheif && cd libheif && git checkout 1a3583b
+RUN git clone  https://github.com/uclouvain/openjpeg && cd openjpeg && git checkout 402ef58
+RUN git clone  https://github.com/webmproject/libwebp && cd libwebp && git checkout ba83585
+RUN git clone  https://github.com/madler/zlib && cd zlib && git checkout e3dc0a8
+RUN git clone  https://github.com/ebiggers/libdeflate && cd libdeflate && git checkout b122c8b
+RUN git clone  https://github.com/libjpeg-turbo/libjpeg-turbo && cd libjpeg-turbo && git checkout 240e20d8
+RUN git clone  https://github.com/tukaani-project/xz && cd xz && git checkout c8b8ab2
+RUN git clone  https://github.com/libraw/libraw && cd libraw && git checkout e419de0
+RUN git clone  https://github.com/pnggroup/libpng && cd libpng && git checkout d1d0abe
+RUN git clone  https://github.com/mm2/Little-CMS && cd Little-CMS && git checkout a5b898c
+RUN git clone  https://github.com/freetype/freetype && cd freetype && git checkout 9e9d3b7
+RUN git clone  https://gitlab.com/federicomenaquintero/bzip2.git 
+RUN git clone  --recursive https://github.com/libjxl/libjxl && cd libjxl && git checkout d089091
+RUN git clone https://www.cl.cam.ac.uk/~mgk25/git/jbigkit && cd jbigkit && git checkout 4f96ddd
+PROJECT:gpac
+RUN git clone https://github.com/gpac/gpac && cd gpac && git submodule update --init --remote --recursive && git checkout d34570e3d994ede1f7fa84075fea793f8939308e
+PROJECT:graphicsmagick
+RUN git clone --depth 1 https://gitlab.com/libtiff/libtiff
+RUN git clone --depth 1 https://github.com/Esri/lerc
+RUN git clone --depth 1 https://github.com/ebiggers/libdeflate
+RUN git clone --depth 1 https://github.com/strukturag/libde265 || \
+RUN git clone --depth 1 https://bitbucket.org/multicoreware/x265_git/src/stable/ x265 || \
+RUN git clone --depth 1 https://aomedia.googlesource.com/aom aom || \
+RUN git clone --depth 1 https://code.videolan.org/videolan/dav1d || \
+RUN git clone --depth 1 https://github.com/cisco/openh264 openh264
+RUN git clone --depth 1 https://github.com/uclouvain/openjpeg openjpeg
+RUN git clone --depth 1 https://github.com/strukturag/libheif
+RUN git clone --depth 1 https://github.com/webmproject/libwebp
+RUN git clone --depth 1 https://github.com/madler/zlib
+RUN git clone --depth 1 https://github.com/tukaani-project/xz
+RUN git clone --depth 1 https://github.com/facebook/zstd
+RUN git clone --depth 1 https://github.com/libjpeg-turbo/libjpeg-turbo
+RUN git clone --depth 1 https://github.com/freetype/freetype
+RUN git clone --depth 1 https://github.com/pnggroup/libpng
+RUN git clone --depth 1 https://github.com/mm2/Little-CMS
+RUN git clone --depth 1 https://gitlab.com/federicomenaquintero/bzip2.git
+RUN git clone --depth 1 https://github.com/jasper-software/jasper
+RUN git clone --depth 1 https://gitlab.gnome.org/GNOME/libxml2.git || \
+    git clone --depth 1 https://gitlab.gnome.org/GNOME/libxml2.git || \
+    git clone --depth 1 https://github.com/GNOME/libxml2
+RUN git clone --depth 1 https://github.com/libjxl/libjxl.git
+RUN git clone --depth 1 https://github.com/nih-at/libzip.git
+RUN git clone --depth 1 https://github.com/caolanm/libwmf.git
+RUN git clone --depth 1 https://github.com/fraunhoferhhi/vvdec.git
+RUN git clone --depth 1 https://github.com/fraunhoferhhi/vvenc.git
+RUN git clone --depth 1 https://code.videolan.org/videolan/x264.git
+RUN git clone --depth 1 https://github.com/aous72/OpenJPH.git
+PROJECT:vlc
+RUN git clone --depth 1 https://code.videolan.org/videolan/vlc.git vlc
+RUN git clone --depth 1 https://code.videolan.org/VideoLAN.org/vlc-fuzz-corpus.git vlc/fuzz-corpus
+PROJECT:binutils
+RUN git clone --depth=1 https://github.com/DavidKorczynski/binary-samples binary-samples
+RUN git clone --recursive --depth 1 git://sourceware.org/git/binutils-gdb.git binutils-gdb
+PROJECT:ghostscript
+RUN git clone --branch branch-2.2 --single-branch --depth 1 https://github.com/apple/cups.git cups
+RUN git clone --branch VER-2-14-0 --single-branch --depth 1 https://git.savannah.gnu.org/git/freetype/freetype2.git freetype
+PROJECT:quickjs
+RUN git clone --depth 1 https://github.com/bellard/quickjs quickjs
+RUN git clone --depth 1 https://github.com/renatahodovan/quickjs-corpus
+PROJECT:ndpi
+RUN git clone --depth 1 https://github.com/ntop/nDPI.git ndpi
+PROJECT:kimageformats
+RUN git clone -b master https://invent.kde.org/frameworks/kimageformats.git && cd kimageformats && git checkout 215305f
+RUN git clone  https://github.com/madler/zlib.git && cd zlib && git checkout e3dc0a8 
+RUN git clone  -b v1.5.7 https://github.com/facebook/zstd.git && cd zstd && git checkout f8745da
+RUN git clone  https://github.com/tukaani-project/xz.git && cd xz && git checkout c8b8ab2e
+RUN git clone  --branch=RB-3.4 https://github.com/AcademySoftwareFoundation/openexr.git && cd openexr && git checkout ca50a6b
+RUN git clone  -b master https://invent.kde.org/frameworks/extra-cmake-modules.git && cd extra-cmake-modules && git checkout 18cd7d1
+RUN git clone  --branch=dev git://code.qt.io/qt/qtbase.git && cd qtbase && git checkout a31df331
+RUN git clone  --branch=dev git://code.qt.io/qt/qttools.git && cd qttools && git checkout 250a111
+RUN git clone  -b master https://invent.kde.org/frameworks/karchive.git && cd karchive && git checkout f17447d
+RUN git clone  -b v3.15.0 https://aomedia.googlesource.com/aom && cd aom && git checkout 0308786
+RUN git clone  -b v1.4.2 https://github.com/AOMediaCodec/libavif.git && cd libavif && git checkout c5240fc
+RUN git clone  https://github.com/strukturag/libde265.git && cd libde265 && git checkout 4d45a6b
+RUN git clone  -b v2.5.4 https://github.com/uclouvain/openjpeg.git && cd openjpeg && git checkout 6c4a29b
+RUN git clone  https://github.com/strukturag/libheif.git && cd libheif && git checkout 1a3583b
+RUN git clone --recursive --shallow-submodules https://github.com/libjxl/libjxl.git && cd libjxl && git checkout d089091
+RUN git clone  https://github.com/LibRaw/LibRaw && cd LibRaw && git checkout e419de0
+RUN git clone  https://github.com/mircomir/jxrlib.git && cd jxrlib && git checkout fdf6bc4
+RUN git clone  -b v2.6.0 https://github.com/cisco/openh264.git && cd openh264 && git checkout 652bdb7
+PROJECT:pcapplusplus
+RUN git clone  https://github.com/seladb/PcapPlusPlus PcapPlusPlus && cd PcapPlusPlus && git checkout ecfeacc
+RUN git clone  https://github.com/the-tcpdump-group/tcpdump.git tcpdump && cd tcpdump && git checkout d42732d
+RUN git clone  https://github.com/the-tcpdump-group/libpcap.git libpcap && cd libpcap && git checkout 0a47250
+PROJECT:assimp
+RUN git clone --recursive https://github.com/assimp/assimp.git && cd assimp && git checkout f0013bd3a669956903159c9f5a85ecee092d3ec5
+PROJECT:openbabel
+RUN git clone https://github.com/openbabel/openbabel.git && cd openbabel && git checkout b3c041ad759bd25a7ef2925bbf0da8426a6d15f6
+PROJECT:llvm
+RUN git clone --depth 1 https://github.com/llvm/llvm-project.git
+RUN git clone --depth 1 https://github.com/AdaLogics/ada-fuzzers && \
+PROJECT:gdal
+RUN git clone --depth 1 https://github.com/OSGeo/gdal gdal
+PROJECT:harfbuzz
+RUN git clone --depth 1 https://github.com/harfbuzz/harfbuzz.git
+PROJECT:opencv
+RUN git clone --depth 1 https://github.com/opencv/opencv.git opencv
+PROJECT:grok
+RUN git clone --recursive --depth 1 https://github.com/GrokImageCompression/grok.git grok
+RUN git clone --depth 1 https://github.com/GrokImageCompression/grok-test-data.git grok-data
+PROJECT:wireshark
+RUN git clone --depth=1 https://gitlab.com/wireshark/wireshark.git
+RUN git clone --depth=1 https://bitbucket.org/jwzawadzki/wireshark-fuzzdb.git

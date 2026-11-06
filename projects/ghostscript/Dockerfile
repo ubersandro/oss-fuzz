@@ -15,12 +15,17 @@
 ################################################################################
 
 # FROM gcr.io/oss-fuzz-base/base-builder
-FROM fsan-afl:latest
+FROM fsan-afl-codeql:latest
 
 RUN apt-get update && apt-get install -y autoconf zlibc libtool liblcms2-dev libpng-dev
-RUN git clone --branch branch-2.2 --single-branch --depth 1 https://github.com/apple/cups.git cups
+RUN git clone https://github.com/apple/cups.git cups && cd cups && git checkout 0ad6ac55da2686c6fa24b05bde5e9036fd4db5d1
 RUN git clone --branch VER-2-14-0 --single-branch --depth 1 https://git.savannah.gnu.org/git/freetype/freetype2.git freetype
-RUN git clone --single-branch --depth 1 git://git.ghostscript.com/ghostpdl.git ghostpdl
+# RUN git clone --single-branch --depth 1 git://git.ghostscript.com/ghostpdl.git ghostpdl
+# RUN git clone --single-branch --depth 1 https://github.com/ArtifexSoftware/ghostpdl.git ghostpdl
+RUN git init ghostpdl && cd ghostpdl && \
+    git remote add origin https://github.com/ArtifexSoftware/ghostpdl.git && \
+    git fetch --depth 1 origin 9d76ba026c28e08dfdf9a6866dcf87514dab935b && \
+    git checkout FETCH_HEAD
 RUN mkdir ghostpdl/fuzz
 
 COPY pdf_seeds $SRC/pdf_seeds

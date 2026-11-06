@@ -16,7 +16,7 @@
 ################################################################################
 
 # FROM gcr.io/oss-fuzz-base/base-builder
-FROM fsan-afl:latest
+FROM fsan-afl-codeql:latest
 RUN git clone -b master https://invent.kde.org/frameworks/kimageformats.git && cd kimageformats && git checkout 215305f
 # COPY ./prepare_build.sh $SRC/kimageformats/autotests/ossfuzz/
 
@@ -62,7 +62,8 @@ RUN git clone  https://github.com/strukturag/libde265.git && cd libde265 && git 
 RUN git clone  -b v2.5.4 https://github.com/uclouvain/openjpeg.git && cd openjpeg && git checkout 6c4a29b
 RUN git clone  https://github.com/strukturag/libheif.git && cd libheif && git checkout 1a3583b
 RUN git clone --recursive --shallow-submodules https://github.com/libjxl/libjxl.git && cd libjxl && git checkout d089091
-RUN git clone  https://github.com/LibRaw/LibRaw && cd LibRaw && git checkout e419de0
+RUN git clone  https://github.com/LibRaw/LibRaw && cd LibRaw && git checkout 823f25d 
+# e419de0
 RUN git clone  https://github.com/mircomir/jxrlib.git && cd jxrlib && git checkout fdf6bc4
 RUN git clone  -b v2.6.0 https://github.com/cisco/openh264.git && cd openh264 && git checkout 652bdb7
 

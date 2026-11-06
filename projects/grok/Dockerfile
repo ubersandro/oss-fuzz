@@ -14,9 +14,10 @@
 #
 ################################################################################
 
-FROM gcr.io/oss-fuzz-base/base-builder
+# FROM gcr.io/oss-fuzz-base/base-builder
+FROM fsan-afl-codeql:latest
 
-RUN git clone --recursive --depth 1 https://github.com/GrokImageCompression/grok.git grok
-RUN git clone --depth 1 https://github.com/GrokImageCompression/grok-test-data.git grok-data
+RUN git clone https://github.com/GrokImageCompression/grok.git grok && cd grok && git checkout 9601176d1f5e79d8b6fd1bef26a719b98e780cec
+RUN git clone https://github.com/GrokImageCompression/grok-test-data.git grok-data  && cd grok-data && git checkout 44251389d1c25a9ebcfa6564a69e90fce2a982ce
 WORKDIR grok
 COPY run_tests.sh build.sh $SRC/

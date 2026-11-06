@@ -34,13 +34,12 @@ sed -i 's/fprintf (stderr/\/\//' elfcomm.c
 sed -i '/^%%$/i%destructor { free (\$\$); } ID' defparse.y
 
 cd ../
-
-./configure --disable-gdb --disable-gdbserver --disable-gdbsupport \
+./configure --disable-gprofng --disable-gdb --disable-gdbserver --disable-gdbsupport \
 	    --disable-libdecnumber --disable-readline --disable-sim \
 	    --disable-libbacktrace --disable-gas --disable-ld --disable-werror \
       --enable-targets=all
 make clean
-make MAKEINFO=true -j$(nproc) && true
+make MAKEINFO=true -j$(nproc) && true V=1
 
 
 # Make fuzzer directory

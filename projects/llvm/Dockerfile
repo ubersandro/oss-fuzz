@@ -14,15 +14,17 @@
 #
 ################################################################################
 
-FROM gcr.io/oss-fuzz-base/base-builder
+FROM fsan-afl-codeql:latest
+# LLVM is a piece of SH with types
+ENV HWASAN_OPTIONS=symbolize=0:exitcode=0:halt_on_error=0:abort_on_error=0:recover_report=summary:verbosity=0:detect_leaks=0:allocator_may_return_null=1 
 RUN apt-get update -y && \
     apt-get install -y autoconf automake libtool curl make g++ unzip wget git \
     binutils liblzma-dev libz-dev python-all cmake ninja-build subversion \
     pkg-config
 
-RUN git clone --depth 1 https://github.com/llvm/llvm-project.git
+RUN git clone https://github.com/llvm/llvm-project.git && cd llvm-project && git checkout f598a65ebafc92aace3cc475f0df640fc5bfd71a
 
-RUN git clone --depth 1 https://github.com/AdaLogics/ada-fuzzers && \
+RUN git clone https://github.com/AdaLogics/ada-fuzzers && cd ada-fuzzers && git checkout 87026e03ca7404dd3fa7f1b3f7726b917daa743e && \
     $SRC/ada-fuzzers/projects/llvm/copy-over.sh
 
 COPY build.sh *.py $SRC/

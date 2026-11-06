@@ -16,10 +16,12 @@
 ################################################################################
 
 cd $SRC
+# add #include <errno.h> at line 38 of file 
+sed -i '38i#include <errno.h>' /src/wireshark/epan/dissectors/packet-trdp.c
 tar -xJf $SRC/libxml2-2.12.10.tar.xz
 cd libxml2-2.12.10
 ./configure --disable-shared --enable-static --disable-ipv6 --without-python --without-zlib --without-lzma
-make -j$(nproc)
+make -j20
 make install
 export LIBXML_CFLAGS="-I$(pwd)/include"
 export LIBXML_LIBS="-L$(pwd) -lxml2"
@@ -61,6 +63,6 @@ cmake -GNinja \
       -DENABLE_WERROR=OFF -DOSS_FUZZ=ON $CMAKE_DEFINES \
       -DUSE_STATIC=ON $SRC/wireshark
 
-ninja all-fuzzers -j$(expr $(nproc) / 4)
+ninja all-fuzzers -j20
 
 $SRC/wireshark/tools/oss-fuzzshark/build.sh all

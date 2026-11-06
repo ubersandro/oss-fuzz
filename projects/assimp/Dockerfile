@@ -15,7 +15,7 @@
 ################################################################################
 
 # FROM gcr.io/oss-fuzz-base/base-builder
-FROM fsan-afl:latest
+FROM fsan-afl-codeql:latest
 RUN apt-get update && apt-get install -y cmake ninja-build zip && apt-get clean && rm -rf /var/lib/apt/lists/*
 # RUN git clone --depth 1 --recursive https://github.com/assimp/assimp.git
 # clone assimp and checkout this specific commit f0013bd3a669956903159c9f5a85ecee092d3ec5

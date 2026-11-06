@@ -15,7 +15,7 @@
 ################################################################################
 
 # FROM gcr.io/oss-fuzz-base/base-builder
-FROM fsan-afl:latest
+FROM fsan-afl-codeql:latest
 RUN apt-get update && apt install -y cmake
 RUN git clone https://github.com/openbabel/openbabel.git && cd openbabel && git checkout b3c041ad759bd25a7ef2925bbf0da8426a6d15f6
 COPY *.sh $SRC/

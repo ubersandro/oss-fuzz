@@ -16,11 +16,11 @@
 ################################################################################
 
 # Disable:
-# 1. UBSan vptr since target built with -fno-rtti.
-export CFLAGS="$CFLAGS -fno-sanitize=vptr -DHB_NO_VISIBILITY"
-export CXXFLAGS="$CXXFLAGS -fno-sanitize=vptr -DHB_NO_VISIBILITY"
+set -ex
+export LDFLAGS="-fsanitize=hwaddress --ld-path=/src/fsan/llvm-project/build/bin/ld.lld -stdlib=libc++ --unwindlib=libunwind --rtlib=compiler-rt -L/src/fsan/runtimes/lib -Wl,-rpath,/src/fsan/runtimes/lib -static-libstdc++ -static-libgcc"
+export CXXFLAGS="-O2 -g3 -DFUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION -pthread -fno-common -fno-data-sections -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -fno-discard-value-names -fuse-ld=/src/fsan/llvm-project/build/bin/ld.lld -stdlib=libc++ -nostdinc++ -isystem /src/fsan/runtimes/include/c++/v1 -fsanitize=hwaddress,fsan-heap -mllvm -disable-loop-idiom-all -mllvm -vectorize-slp=0 -mllvm -vectorize-loops=0 -mllvm -fsan-blocklist-tag-filepath=/src/fsan.blocklist -mllvm -fsan-list-of-vars-to-blocklist=/src/fsan.blocklist.vars -mllvm -rewrite-ptr-subs=1 -mllvm -enable-tail-merge=0 -mllvm -hwasan-recover=1 --rtlib=compiler-rt --unwindlib=libunwind -Wno-unused-command-line-argument"
+CFLAGS="-O2 -g3 -DFUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION -pthread -fno-common -fno-data-sections -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -fno-discard-value-names -fuse-ld=/src/fsan/llvm-project/build/bin/ld.lld -fsanitize=hwaddress,fsan-heap  -mllvm -disable-loop-idiom-all -mllvm -vectorize-slp=0 -mllvm -vectorize-loops=0 -mllvm -fsan-blocklist-tag-filepath=/src/fsan.blocklist -mllvm -fsan-list-of-vars-to-blocklist=/src/fsan.blocklist.vars -mllvm -rewrite-ptr-subs=1 -mllvm -enable-tail-merge=0 -mllvm -hwasan-recover=1"
 
-# Use i386 pkg-config paths for 32-bit builds so meson finds the right libraries
 if [ "$ARCHITECTURE" = "i386" ]; then
   export PKG_CONFIG_LIBDIR=/usr/lib/i386-linux-gnu/pkgconfig
 fi

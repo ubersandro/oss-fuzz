@@ -1,0 +1,106 @@
+PROJECT	DEPENDENCY	COMMIT
+ffmpeg	ffmpeg	98e45d60746e25fc4a5529bd6ffb8ae7f28f6ce8 2026-08-12 avcodec/lcldec: clear what the multithread chunks leave undecoded
+ffmpeg	fdk-aac	d8e6b1a3aa606c450241632b64b703f21ea31ce3 2025-08-21 Merge remote-tracking branch 'aosp/main'
+ffmpeg	fontconfig	d32a1911248576d01583557efcfe4b48fb2d0a5e 2026-08-10 Merge branch 'ci-changelog' into 'main'
+ffmpeg	freetype	9e9d3b73f31367dbb4261f93c727a277f6632c77 2026-08-07 * tests/issue-1063/main.c: Clean up exit.
+ffmpeg	fribidi	ee2edf744abf1728e03cd5ac63b5f1a2f95d047d 2026-08-11 Generate fribidi.1 man page
+ffmpeg	harfbuzz	d8dabe2594596c656b54c3b0072f3aa3093f30a9 2026-08-11 [subset] Keep glyf table alive during serialization (#6150)
+ffmpeg	libass	3087d2b2ffda76602a17f9b09d25cb8addc8d313 2026-08-10 ci/gha/vm: upgrade cross-platform-action to new syntax
+ffmpeg	zlib	e3dc0a85b7032e98380dec011bc8f2c2ee0d8fca 2026-06-01 Avoid undefined behavior in gzwrite.c.
+ffmpeg	bzip2	bf905ea2251191ff9911ae7ec0cfc35d41f9f7f6 2021-05-31 Merge branch 'master' into 'master'
+ffmpeg	libvpx	9cc8e1c18024d6b64422ecb7fdd7a43c8e873908 2026-08-11 Cast (height - 1) to ptrdiff_t in vpx_img_flip()
+ffmpeg	ogg	06a5e0262cdc28aa4ae6797627a783b5010440f0 2026-03-02 Fix potential overflow in ogg_stream_iovecin.
+ffmpeg	opus	3da9f7a6db1c05c3996cb363a9d1931a978bf1be 2026-06-12 DRED: check processing stage
+ffmpeg	theora	28fd5ec77f0ad0e07a371cef1047828116f6bd8a 2026-05-11 Fix -Wshift-op-parentheses on examples
+ffmpeg	vorbis	1b75110b5a2754ba1931d82dd83cb822b266a21d 2026-08-03 [vorbisfile] Fix use-after-free in ov_pcm_page_seek
+ffmpeg	libxml2	c63248941708bc1d2e3a4292954593312212f6ca 2026-08-11 catalog: Fix NULL deref for nextCatalog without 'catalog' attribute
+mruby	mruby	7184392b3e49bf6364c9851b9229d38a1e3f7ce1 2026-08-11 Merge pull request #7074 from takumin/regexp-unicode-escape
+mruby	mruby_seeds	5a618aba8e4493eceff7a430cba7c848e6cbabfd 2019-05-04 first commit
+mruby	libprotobuf-mutator	c1c950eae0440c3808f2b8bd7c57d0c6a42c1a90 2026-02-09 fix typo in LIB_PROTO_MUTATOR_HAS_NO_SANITIZE_FUZZER (#291)
+imagemagick	&&cd	ERROR: fatal: cannot change to '/src/&&cd': No such file or directory
+imagemagick	libtiff	1ac62678c2c5d01ac901d07a5fdcaae901ea53dd 2026-08-11 Merge branch 'DNG-IlluminantData3-typo' into 'master'
+imagemagick	libde265	4d45a6b36767318237771e1b3faf41773c4af4ad 2026-06-29 Fix link in packaging status badge
+imagemagick	libheif	1a3583bcce77de6d3f8701c0758e3954863681ba 2026-07-10 fix case fallthrough
+imagemagick	openjpeg	402ef5862195b177ea0a7788f2a6ef2804e62285 2026-07-07 Merge pull request #1654 from rouault/unmaintained
+imagemagick	libwebp	ba8358578ecbc4c75f0723163275de00dec0c704 2026-08-11 Merge "backward_references_enc: avoid forming counts_ini[-1]" into main
+imagemagick	zlib	e3dc0a85b7032e98380dec011bc8f2c2ee0d8fca 2026-06-01 Avoid undefined behavior in gzwrite.c.
+imagemagick	libdeflate	b122c8be1d78b19f6d0a6efc5bb79bfcbb30dd51 2026-05-16 lib/arm/cpu_features.c: Use O_CLOEXEC when opening files
+imagemagick	libjpeg-turbo	240e20d87c0b7d17614687ddc55ccd1fc631daf9 2026-07-16 Build: Try to find libspng via CMake config file
+imagemagick	xz	c8b8ab2ef1eb0a0217ad2027d7f5d242ceb944d3 2026-08-09 liblzma: Fix a theoretical integer overflow in lzma_index_cat()
+imagemagick	libraw	e419de08001de28ae6988ecb22df47e52b9c5eaa 2026-07-18 adjust ARW6 black/white/linear_max points
+imagemagick	libpng	d1d0abeffede1cc898ddc3d0e600839cf026d749 2026-06-26 Merge pull request #759 from aYukiSekiguchi/fix_hIST_chunk_position
+imagemagick	Little-CMS	a5b898c7e3985550aab846a2abb4ae08904a857f 2026-08-10 fix a leak in non-happy path
+imagemagick	freetype	9e9d3b73f31367dbb4261f93c727a277f6632c77 2026-08-07 * tests/issue-1063/main.c: Clean up exit.
+imagemagick	bzip2	bf905ea2251191ff9911ae7ec0cfc35d41f9f7f6 2021-05-31 Merge branch 'master' into 'master'
+imagemagick	libjxl	d089091afeb7b00b3d0fec6f019d35eaa3b2b410 2026-08-11 Fix mingw32 build (#4940)
+imagemagick	jbigkit	4f96ddd9e8850594a2d94fb2201571be0398c8c7 2026-05-08 proofread comments
+gpac	gpac	d34570e3d994ede1f7fa84075fea793f8939308e 2026-08-06 fuzz: xmt mem fixes
+graphicsmagick	libtiff	35c2763fa6281ad86396c011cc544bc4f68e6a0f 2026-10-28 Merge branch 'fix-fuzzers' into 'master'
+graphicsmagick	lerc	bbd9531494ac54e49134a19acf4faab4d5cbb7cd 2026-10-30 Merge pull request #329 from Esri/tmaurer3/update_changelog
+graphicsmagick	libdeflate	0758d0a12d34fac281b0fe27c5155fbe753d9511 2026-10-31 NEWS.md: improve the latest release notes
+graphicsmagick	libde265	4fb298ec1af0686211dc2def73f4f41c2ce19ce5 2026-09-30 image: scale the conformance window offsets for pictures with more than 8 bits
+graphicsmagick	x265	b81f650e21e8aacbe6a9ad04ce14aefc05b932c0 2026-06-23 Adjustments to make existing CPU detection code alike. NFC
+graphicsmagick	aom	d55e6b33a8dea2fbe6b16acc31918e15f2a93602 2026-10-30 Merge tag 'v3.15.3' into main branch
+graphicsmagick	dav1d	4e3ab21fbbf84a4bd283ea27f96287fcd7c228c1 2026-10-29 arm: Do unsigned comparisons of pointers in save_tmvs_neon
+graphicsmagick	openh264	1bca62311e447fd9c39fc93de2c4b96cd5ce971c 2026-10-12 update openh264v2.7.0 version and release note (#4050)
+graphicsmagick	openjpeg	8314119b067c0fc77834731168daaebd379fdb12 2026-09-05 Merge pull request #1666 from rouault/mco_zero_stage
+graphicsmagick	libheif	12a259a5882dd99d45ec5fc77e296a3b620d1e2e 2026-10-26 increase version to v1.23.7
+graphicsmagick	libwebp	1844042d1ca751e62e61df7617dba19c98588339 2026-10-19 Fix invalid bitstream handling when start[0]==255
+graphicsmagick	zlib	aaa772ce5c6d0023204c6ee45c59cf70c8372c51 2026-11-01 Honor the promise to detect a bad deflateSetDictionary() call.
+graphicsmagick	xz	9af25400834aede88f1bc77b8524fcba10f15651 2026-10-28 Landlock: Support ABI version 10
+graphicsmagick	zstd	49cf51799ea051457f57243527aa2058f999f005 2026-10-05 Merge pull request #4806 from facebook/dependabot/github_actions/actions/setup-java-6.0.1
+graphicsmagick	libjpeg-turbo	0541c8fc1cc4f3e7e3ded0fcec498189ab63d03a 2026-11-01 CI: Fix build/test issues with Ubuntu 26.04
+graphicsmagick	freetype	36db6edb8415850f85690e28fb98b68d5f92440d 2026-11-02 * src/autofit/ft-hb.c: Code formatting.
+graphicsmagick	libpng	a70313dbb68987be6834879f449d527687ec659a 2026-10-28 fix(build): Keep pngprefix.h out of its own generation
+graphicsmagick	Little-CMS	689a84bcae6dc0173f3f45b55ffb8dea721c3d6b 2026-11-02 Merge pull request #636 from mm2/dependabot/github_actions/github-actions-a2699776e0
+graphicsmagick	bzip2	bf905ea2251191ff9911ae7ec0cfc35d41f9f7f6 2021-05-31 Merge branch 'master' into 'master'
+graphicsmagick	jasper	5ce57f67e0011e0d2483992a5d77a092b1b64eb7 2026-05-23 Added two bad image files for potential use as test cases.
+graphicsmagick	libxml2	2034036d2e8d5f1eac8302aa477ff563aa4670c6 2026-10-27 xmlstring: Reject lead bytes from 0xF8 in xmlGetUTF8Char
+graphicsmagick	libjxl	a16d32d0ac113f5e54125e49bb571281c5d0b704 2026-10-31 Handle legacy Display P3 ICC profiles (#4965)
+graphicsmagick	libzip	729d89f1a6cbeaebe9d4accad23fc65f5a93bcde 2026-10-31 Abort in-source builds at configure time.
+graphicsmagick	libwmf	aacac826130692d98cbec084a24beda494e3a63c 2026-11-01 bump actions/checkout to v6 for Node.js 24
+graphicsmagick	vvdec	17e0f2f2089c5c0553f1bfc486b1b7aa551e7819 2026-10-28 Merge pull request #460 from kjg0724/feature/intrapred-angle-core-neon
+graphicsmagick	vvenc	c8a99963f7fb152ee1d7cd1c1700f93ba1364e6e 2026-11-02 Reduce intra QP (#775)
+graphicsmagick	x264	0480cb05fa188d37ae87e8f4fd8f1aea3711f7ee 2025-09-10 riscv64: add compile support
+graphicsmagick	OpenJPH	345a8bcd1c7a3908e3870797057277660a412073 2026-11-02 Fixes CVE-2026-111151
+vlc	vlc	8a47770f6333df6b60181329db5fdaad318bdb44 2026-11-02 demux: heif: check the grid offset for overflow
+vlc	vlc/fuzz-corpus	8517fcb7d72165702e842050a24be8d369137be9 2026-04-02 add seeds/dicts for aiff, au, nuv
+binutils	binary-samples	50f4f6ad752e982f26fab167665e763b6877c942 2022-09-19 rename directory
+binutils	binutils-gdb	7c17eec026eb04921d86b429caeb4a7b519218e9 2026-11-02 [gdb/testsuite] Fix FAIL in gdb.server/multi-ui-errors.exp
+ghostscript	cups	0ad6ac55da2686c6fa24b05bde5e9036fd4db5d1 2019-12-13 Bump version numbers.
+ghostscript	freetype	ERROR: fatal: cannot change to '/src/freetype': No such file or directory
+quickjs	quickjs	2833510432045f72915919cef680ba59e5153b16 2026-10-31 test262 update
+quickjs	quickjs-corpus	e4a5f4b5e67d5f1303435417b81ff27ea6555623 2024-05-28 Initial commit
+ndpi	ndpi	0c81498aa16332e75dda8eeb63a6f45f8fc2be09 2026-11-02 L2TP: fix out-of-bounds read on short control messages (#3307)
+kimageformats	kimageformats	215305fa4b47338da7f3969faf975c943a4c2d6d 2026-07-03 Update version to 6.29.0
+kimageformats	zlib	e3dc0a85b7032e98380dec011bc8f2c2ee0d8fca 2026-06-01 Avoid undefined behavior in gzwrite.c.
+kimageformats	zstd	f8745da6ff1ad1e7bab384bd1f9d742439278e99 2025-02-18 Merge pull request #4298 from facebook/dev
+kimageformats	xz	c8b8ab2ef1eb0a0217ad2027d7f5d242ceb944d3 2026-08-09 liblzma: Fix a theoretical integer overflow in lzma_index_cat()
+kimageformats	openexr	ca50a6bb1f64c4d53362e4b67aec33e67cb7d425 2026-08-04 release notes for v3.3.13
+kimageformats	extra-cmake-modules	18cd7d159e32f80db852bc077e4f69462b011e85 2026-08-07 Update version to 6.30.0
+kimageformats	qtbase	a31df331abf31f44bee68e68cd95ccf0455a338f 2026-08-12 ohos: Route setFullScreen() through flushedWindowProxyOrNull()
+kimageformats	qttools	250a1111827fb187395f16d664415f1b6f67424e 2026-08-11 Linguist: Report every validation violation, not just one per type
+kimageformats	karchive	f17447d15681756bfffd5671fabb6be0dd475b10 2026-08-12 GIT_SILENT Sync po/docbooks with svn
+kimageformats	aom	03087864cf4bea6abb0d28f95cf7843511413d8f 2026-05-22 CHANGELOG: Add oss-fuzz:514006304 bug fix
+kimageformats	libavif	c5240fc79fe5c2407e10afd35f5505ef6333ea49 2026-05-26 v1.4.2
+kimageformats	libde265	4d45a6b36767318237771e1b3faf41773c4af4ad 2026-06-29 Fix link in packaging status badge
+kimageformats	openjpeg	6c4a29b00211eb0430fa0e5e890f1ce5c80f409f 2025-09-20 Merge pull request #1594 from rouault/bump_cmake_min_req
+kimageformats	libheif	1a3583bcce77de6d3f8701c0758e3954863681ba 2026-07-10 fix case fallthrough
+kimageformats	libjxl	d089091afeb7b00b3d0fec6f019d35eaa3b2b410 2026-08-11 Fix mingw32 build (#4940)
+kimageformats	LibRaw	e419de08001de28ae6988ecb22df47e52b9c5eaa 2026-07-18 adjust ARW6 black/white/linear_max points
+kimageformats	jxrlib	fdf6bc40f85495d44cafece41a34ae85bbad4c90 2026-07-09 Potential fix for code scanning alert no. 11: Workflow does not contain permissions (#56)
+kimageformats	openh264	652bdb7719f30b52b08e506645a7322ff1b2cc6f 2025-02-10 update release note (#3855)
+pcapplusplus	PcapPlusPlus	ecfeaccf7b81ed5dc79279468e5f0d3ad6e10ec1 2026-08-10 Remove leftover excludes (#2211)
+pcapplusplus	tcpdump	d42732d73ca91e93042d2708cca8f5d4504c2bed 2026-08-08 instrument functions: Sync the Copyright header with the libpcap one
+pcapplusplus	libpcap	0a472508b716f8796a9646455b480001c10c1825 2026-08-11 translatetest: Get two function names right. [skip ci]
+assimp	assimp	f0013bd3a669956903159c9f5a85ecee092d3ec5 2026-08-12 Harden MDL importer metadata parsing (#6726)
+openbabel	openbabel	b3c041ad759bd25a7ef2925bbf0da8426a6d15f6 2026-08-07 Merge pull request #3006 from ghutchis/fix-ga-search-double-free
+llvm	llvm-project	f598a65ebafc92aace3cc475f0df640fc5bfd71a 2026-11-02 [libc] Move nullptr_t definition to cstddef/nullptr_t.h (#236712)
+llvm	ada-fuzzers	87026e03ca7404dd3fa7f1b3f7726b917daa743e 2026-05-17 Merge pull request #66 from AdaLogics/adjust-b
+gdal	gdal	7f09330a48c95f3a447ad2f9ae1abe61a95ed627 2026-11-02 Postgres: avoid stripping backslashes from string list elements (#15430)
+harfbuzz	harfbuzz	708d59a5073841fddba782ad3c1fac315e897cdf 2026-11-01 [shape-plan] Cache the last shape plan looked up per face (#6550)
+opencv	opencv	c 2026-11-02 Merge pull request #30611 from sshivensolanki/fix-bitwise-not-bool
+grok	grok	9601176d1f5e79d8b6fd1bef26a719b98e780cec 2026-11-02 free tile scheduler after each swath
+grok	grok-data	44251389d1c25a9ebcfa6564a69e90fce2a982ce 2026-10-17 regenerate p0_04 9/7 baseline for mercury decode
+wireshark	wireshark	a96a1b06305653bd19ef80318f6639fe918038cd 2026-11-02 DHCPv6: RFC10038 (Segment Routing over IPv6)
+wireshark	wireshark-fuzzdb	98fa5ba9a4c27a2fbcbe68bc43f696cfa295046e 2017-04-17 JSON samples.

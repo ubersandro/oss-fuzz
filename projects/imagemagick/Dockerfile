@@ -15,7 +15,7 @@
 ################################################################################
 
 # FROM gcr.io/oss-fuzz-base/base-builder
-FROM fsan-afl:latest
+FROM fsan-afl-codeql:latest
 
 # Install build tools
 RUN apt-get update && \
@@ -58,7 +58,8 @@ RUN git clone  https://github.com/madler/zlib && cd zlib && git checkout e3dc0a8
 RUN git clone  https://github.com/ebiggers/libdeflate && cd libdeflate && git checkout b122c8b
 RUN git clone  https://github.com/libjpeg-turbo/libjpeg-turbo && cd libjpeg-turbo && git checkout 240e20d8
 RUN git clone  https://github.com/tukaani-project/xz && cd xz && git checkout c8b8ab2
-RUN git clone  https://github.com/libraw/libraw && cd libraw && git checkout e419de0
+RUN git clone  https://github.com/libraw/libraw && cd libraw && git checkout 823f25d
+# e419de0 
 RUN git clone  https://github.com/pnggroup/libpng && cd libpng && git checkout d1d0abe
 RUN git clone  https://github.com/mm2/Little-CMS && cd Little-CMS && git checkout a5b898c
 RUN git clone  https://github.com/freetype/freetype && cd freetype && git checkout 9e9d3b7

@@ -15,7 +15,7 @@
 ################################################################################
 
 # FROM gcr.io/oss-fuzz-base/base-builder
-FROM fsan-afl:latest
+FROM fsan-afl-codeql:latest
 RUN apt-get update && apt-get install -y build-essential ruby bison ninja-build \
     cmake zlib1g-dev libbz2-dev liblzma-dev && apt-get clean && rm -rf /var/lib/apt/lists/*
 RUN git clone https://github.com/mruby/mruby mruby && cd mruby && git checkout 7184392b3e49bf6364c9851b9229d38a1e3f7ce1

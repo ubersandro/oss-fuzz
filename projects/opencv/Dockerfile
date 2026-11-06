@@ -14,10 +14,12 @@
 #
 ################################################################################
 
-FROM gcr.io/oss-fuzz-base/base-builder
+# FROM gcr.io/oss-fuzz-base/base-builder
+FROM fsan-afl-codeql:latest
 
 RUN apt-get update && apt-get install -y build-essential cmake pkg-config
-RUN git clone --depth 1 https://github.com/opencv/opencv.git opencv
+RUN git clone --depth 1 https://github.com/opencv/opencv.git opencv && cd opencv && git checkout 1f8257a
+# old checkout 1f8257a of version where we found IOO
 WORKDIR opencv/
 
 COPY build.sh $SRC/

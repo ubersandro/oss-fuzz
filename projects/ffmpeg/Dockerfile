@@ -15,10 +15,17 @@
 ################################################################################
 
 # FROM gcr.io/oss-fuzz-base/base-builder
-FROM fsan-afl:latest
+FROM fsan-afl-codeql:latest
 RUN apt-get update && apt-get install -y nasm pkg-config rsync libtool gperf help2man && apt-get clean && rm -rf /var/lib/apt/lists/*
-RUN curl -LO https://mirrors.kernel.org/ubuntu/pool/main/a/automake-1.16/automake_1.16.5-1.3_all.deb && \
-    apt install ./automake_1.16.5-1.3_all.deb
+# RUN curl -LO https://mirrors.kernel.org/ubuntu/pool/main/a/automake-1.16/automake_1.16.5-1.3_all.deb && \
+#     apt install ./automake_1.16.5-1.3_all.deb
+RUN set -e; deb=automake_1.16.5-1.3_all.deb; \
+    for m in https://mirrors.edge.kernel.org/ubuntu http://archive.ubuntu.com/ubuntu \
+             http://de.archive.ubuntu.com/ubuntu https://mirror.math.princeton.edu/pub/ubuntu; do \
+        curl -fL --retry 3 --connect-timeout 15 -o "$deb" "$m/pool/main/a/automake-1.16/$deb" && break; \
+    done; \
+    echo "59e3890fc8407bcf8ccc9f709d6513156346d5c942e8c624dc90435e58f6f978  $deb" | sha256sum -c -; \
+    apt-get install -y "./$deb"; rm -f "$deb"
 RUN curl -LO https://mirrors.kernel.org/ubuntu/pool/main/a/autoconf/autoconf_2.72-3.1ubuntu1_all.deb && \
     apt install ./autoconf_2.72-3.1ubuntu1_all.deb
 RUN python3 -m pip install --upgrade pip && python3 -m pip install -U meson==1.11.1 ninja

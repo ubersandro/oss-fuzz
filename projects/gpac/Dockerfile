@@ -15,7 +15,7 @@
 ################################################################################
 
 # FROM gcr.io/oss-fuzz-base/base-builder
-FROM fsan-afl:latest
+FROM fsan-afl-codeql:latest
 RUN apt-get update && apt-get install -y build-essential pkg-config libz-dev && apt-get clean && rm -rf /var/lib/apt/lists/*
 RUN git clone https://github.com/gpac/gpac && cd gpac && git submodule update --init --remote --recursive && git checkout d34570e3d994ede1f7fa84075fea793f8939308e
 

@@ -14,9 +14,9 @@
 #
 ################################################################################
 
-FROM gcr.io/oss-fuzz-base/base-builder
+FROM fsan-afl-codeql:latest
 RUN apt-get update && apt-get install -y make
-RUN git clone --depth 1 https://github.com/bellard/quickjs quickjs
+RUN git clone --depth 1 https://github.com/bellard/quickjs quickjs && cd quickjs && git checkout 2833510432045f72915919cef680ba59e5153b16
 RUN git clone --depth 1 https://github.com/renatahodovan/quickjs-corpus
 WORKDIR $SRC/quickjs
 COPY build.sh run_tests.sh $SRC/

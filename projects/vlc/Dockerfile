@@ -14,7 +14,8 @@
 #
 ################################################################################
 
-FROM gcr.io/oss-fuzz-base/base-builder:ubuntu-24-04
+# FROM gcr.io/oss-fuzz-base/base-builder:ubuntu-24-04
+FROM fsan-afl-codeql-24:latest
 RUN apt-get update && apt-get install -y make autoconf automake libtool \
   pkg-config cmake flex bison gettext autopoint gperf libglu1-mesa-dev ninja-build \
   python3-pip nasm yasm \
@@ -23,7 +24,7 @@ RUN apt-get update && apt-get install -y make autoconf automake libtool \
 # installed via pip so it targets the same python3 the build uses (the apt
 # python3-pil package isn't importable by the OSS-Fuzz base python).
 RUN pip3 install meson pillow
-RUN git clone --depth 1 https://code.videolan.org/videolan/vlc.git vlc
-RUN git clone --depth 1 https://code.videolan.org/VideoLAN.org/vlc-fuzz-corpus.git vlc/fuzz-corpus
+RUN git clone --depth 1 https://code.videolan.org/videolan/vlc.git vlc && cd vlc && git checkout 8a47770f6333df6b60181329db5fdaad318bdb44
+RUN git clone --depth 1 https://code.videolan.org/VideoLAN.org/vlc-fuzz-corpus.git vlc/fuzz-corpus && cd vlc/fuzz-corpus && git checkout 8517fcb7d72165702e842050a24be8d369137be9
 WORKDIR vlc
 COPY build.sh fuzzing-modules.patch generate_seeds.py $SRC/
