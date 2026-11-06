@@ -1,0 +1,15 @@
+ping_fuzzer
+encoder_jxl_fuzzer
+encoder_ptif_fuzzer
+encoder_tiff64_fuzzer
+encoder_tiff_fuzzer
+encoder_ttf_fuzzer
+encoder_ept_fuzzer
+encoder_heic_fuzzer
+encoder_clip_fuzzer
+encoder_dng_fuzzer
+encoder_ept2_fuzzer
+encoder_ept3_fuzzer
+encoder_mng_fuzzer
+encoder_vid_fuzzer
+encoder_inline_fuzzer

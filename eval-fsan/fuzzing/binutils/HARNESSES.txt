@@ -1,0 +1,15 @@
+fuzz_objdump
+fuzz_disassemble
+fuzz_objcopy
+fuzz_nm
+fuzz_objdump_safe
+fuzz_as
+fuzz_readelf
+fuzz_strings
+fuzz_ranlib_simulation
+fuzz_bfd
+fuzz_dlltool
+fuzz_dwarf
+fuzz_windres
+fuzz_disas_ext-bfd_arch_arm
+fuzz_disas_ext-bfd_arch_i386

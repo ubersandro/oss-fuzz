@@ -1,0 +1,9 @@
+ogr_fuzzer
+gdal_translate_fuzzer
+mitab_mif_fuzzer
+mrf_fuzzer
+hfa_fuzzer
+lvbag_fuzzer
+rraster_fuzzer
+srp_fuzzer
+ods_fuzzer

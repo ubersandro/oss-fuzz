@@ -1,0 +1,10 @@
+vfabi-demangler-fuzzer
+llvm-microsoft-demangle-fuzzer
+llvm-special-case-list-fuzzer
+clang-format-fuzzer
+llvm-opt-fuzzer--x86_64-sccp
+llvm-object-yaml-fuzzer
+llvm-itanium-demangle-fuzzer
+llvm-isel-fuzzer--aarch64-gisel
+llvm-opt-fuzzer--x86_64-memcpyopt
+llvm-opt-fuzzer--x86_64-simplifycfg

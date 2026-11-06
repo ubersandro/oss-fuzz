@@ -1,0 +1,15 @@
+assimp_roundtrip_fuzzer
+assimp_fuzzer
+assimp_postprocess_fuzzer
+assimp_fuzzer_fbx
+assimp_fuzzer_collada
+assimp_fuzzer_gltf
+assimp_fuzzer_blend
+assimp_fuzzer_glb
+assimp_fuzzer_ifc
+assimp_fuzzer_ase
+assimp_fuzzer_3mf
+assimp_fuzzer_obj
+assimp_fuzzer_amf
+assimp_fuzzer_3ds
+assimp_fuzzer_stl

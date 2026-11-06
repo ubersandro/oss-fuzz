@@ -1,0 +1,2 @@
+grk_decompress_mercury_fuzzer
+grk_decompress_fuzzer

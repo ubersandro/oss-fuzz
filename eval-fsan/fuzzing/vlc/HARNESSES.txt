@@ -1,0 +1,15 @@
+vlc-demux-dec-libfuzzer-mkv
+vlc-demux-dec-libfuzzer-mp4
+vlc-demux-dec-libfuzzer-ts
+vlc-demux-dec-libfuzzer-nsv
+vlc-demux-dec-libfuzzer-ps
+vlc-demux-dec-libfuzzer-avi
+vlc-demux-dec-libfuzzer-asf
+vlc-demux-dec-libfuzzer-aac
+vlc-demux-dec-libfuzzer-nuv
+vlc-demux-dec-libfuzzer-ogg
+vlc-demux-dec-libfuzzer-gme
+vlc-demux-dec-libfuzzer-mod
+vlc-demux-dec-libfuzzer-pva
+vlc-demux-dec-libfuzzer-image
+vlc-demux-dec-libfuzzer-mp3

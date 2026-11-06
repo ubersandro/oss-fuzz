@@ -1,0 +1,9 @@
+core_fuzzer 
+filestorage_read_file_fuzzer
+filestorage_read_filename_fuzzer 
+filestorage_read_string_fuzzer 
+generateusergallerycollage_fuzzer
+imdecode_fuzzer
+imencode_fuzzer
+imread_fuzzer
+readnetfromtensorflow_fuzzer

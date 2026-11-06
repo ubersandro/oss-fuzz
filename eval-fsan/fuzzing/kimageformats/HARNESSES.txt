@@ -1,0 +1,15 @@
+kimgio_heif_fuzzer
+kimgio_avif_fuzzer
+kimgio_raw_fuzzer
+kimgio_jxl_fuzzer
+kimgio_exr_fuzzer
+kimgio_iff_fuzzer
+kimgio_psd_fuzzer
+kimgio_jp2_fuzzer
+kimgio_kra_fuzzer
+kimgio_jxr_fuzzer
+kimgio_xcf_fuzzer
+kimgio_tga_fuzzer
+kimgio_hdr_fuzzer
+kimgio_dds_fuzzer
+kimgio_pfm_fuzzer

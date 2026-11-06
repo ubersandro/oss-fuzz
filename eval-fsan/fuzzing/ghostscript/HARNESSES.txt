@@ -1,0 +1,15 @@
+gs_device_eps2write_fuzzer
+gs_device_ps2write_fuzzer
+gs_device_tiffsep1_fuzzer
+gs_device_pxlcolor_fuzzer
+gs_device_xpswrite_fuzzer
+gs_device_pxlmono_fuzzer
+gs_device_faxg3_fuzzer
+gs_device_png16m_fuzzer
+gs_device_pgmraw_fuzzer
+gstoraster_fuzzer
+gs_device_pdfwrite_fuzzer
+gs_device_psdcmyk_fuzzer
+gstoraster_pdf_fuzzer
+gs_device_pdfwrite_opts_fuzzer
+gstoraster_fuzzer_all_colors

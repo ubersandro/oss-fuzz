@@ -1,0 +1,15 @@
+coder_TIFF_any_fuzzer
+enhance_fuzzer
+coder_WPG_fuzzer
+coder_HEIF_fuzzer
+coder_WMF_fuzzer
+coder_BIGTIFF_fuzzer
+coder_TIFF_fuzzer
+coder_PTIF_fuzzer
+coder_MP4_fuzzer
+coder_AVIF_fuzzer
+coder_HEIC_fuzzer
+coder_MVG_fuzzer
+coder_AVCI_fuzzer
+coder_JXL_fuzzer
+coder_SVGZ_fuzzer
