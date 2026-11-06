@@ -1,0 +1,301 @@
+services:
+  eval-llvm:
+    command: /bin/bash
+    init: true
+    privileged: true
+    stdin_open: true
+    tty: true
+    deploy:
+      replicas: 1
+    environment:
+      PINNED_CORES_START: 0
+      PINNED_CORES_END: 10
+      PROJECT: llvm
+    image: gcr.io/oss-fuzz/llvm:latest
+    volumes:
+    - /home/ale/ubersandro/oss-fuzz/eval-fsan/fuzzing/llvm:/fuzzing-campaign
+  eval-kimageformats:
+    command: /bin/bash
+    init: true
+    privileged: true
+    stdin_open: true
+    tty: true
+    deploy:
+      replicas: 1
+    environment:
+      PINNED_CORES_START: 11
+      PINNED_CORES_END: 21
+      PROJECT: kimageformats
+    image: gcr.io/oss-fuzz/kimageformats:latest
+    volumes:
+    - /home/ale/ubersandro/oss-fuzz/eval-fsan/fuzzing/kimageformats:/fuzzing-campaign
+  eval-ffmpeg:
+    command: /bin/bash
+    init: true
+    privileged: true
+    stdin_open: true
+    tty: true
+    deploy:
+      replicas: 1
+    environment:
+      PINNED_CORES_START: 22
+      PINNED_CORES_END: 32
+      PROJECT: ffmpeg
+    image: gcr.io/oss-fuzz/ffmpeg:latest
+    volumes:
+    - /home/ale/ubersandro/oss-fuzz/eval-fsan/fuzzing/ffmpeg:/fuzzing-campaign
+  eval-imagemagick:
+    command: /bin/bash
+    init: true
+    privileged: true
+    stdin_open: true
+    tty: true
+    deploy:
+      replicas: 1
+    environment:
+      PINNED_CORES_START: 33
+      PINNED_CORES_END: 43
+      PROJECT: imagemagick
+    image: gcr.io/oss-fuzz/imagemagick:latest
+    volumes:
+    - /home/ale/ubersandro/oss-fuzz/eval-fsan/fuzzing/imagemagick:/fuzzing-campaign
+  eval-graphicsmagick:
+    command: /bin/bash
+    init: true
+    privileged: true
+    stdin_open: true
+    tty: true
+    deploy:
+      replicas: 1
+    environment:
+      PINNED_CORES_START: 44
+      PINNED_CORES_END: 54
+      PROJECT: graphicsmagick
+    image: gcr.io/oss-fuzz/graphicsmagick:latest
+    volumes:
+    - /home/ale/ubersandro/oss-fuzz/eval-fsan/fuzzing/graphicsmagick:/fuzzing-campaign
+  eval-ghostscript:
+    command: /bin/bash
+    init: true
+    privileged: true
+    stdin_open: true
+    tty: true
+    deploy:
+      replicas: 1
+    environment:
+      PINNED_CORES_START: 55
+      PINNED_CORES_END: 65
+      PROJECT: ghostscript
+    image: gcr.io/oss-fuzz/ghostscript:latest
+    volumes:
+    - /home/ale/ubersandro/oss-fuzz/eval-fsan/fuzzing/ghostscript:/fuzzing-campaign
+  eval-vlc:
+    command: /bin/bash
+    init: true
+    privileged: true
+    stdin_open: true
+    tty: true
+    deploy:
+      replicas: 1
+    environment:
+      PINNED_CORES_START: 66
+      PINNED_CORES_END: 76
+      PROJECT: vlc
+    image: gcr.io/oss-fuzz/vlc:latest
+    volumes:
+    - /home/ale/ubersandro/oss-fuzz/eval-fsan/fuzzing/vlc:/fuzzing-campaign
+  eval-assimp:
+    command: /bin/bash
+    init: true
+    privileged: true
+    stdin_open: true
+    tty: true
+    deploy:
+      replicas: 1
+    environment:
+      PINNED_CORES_START: 77
+      PINNED_CORES_END: 87
+      PROJECT: assimp
+    image: gcr.io/oss-fuzz/assimp:latest
+    volumes:
+    - /home/ale/ubersandro/oss-fuzz/eval-fsan/fuzzing/assimp:/fuzzing-campaign
+  eval-opencv:
+    command: /bin/bash
+    init: true
+    privileged: true
+    stdin_open: true
+    tty: true
+    deploy:
+      replicas: 1
+    environment:
+      PINNED_CORES_START: 88
+      PINNED_CORES_END: 97
+      PROJECT: opencv
+    image: gcr.io/oss-fuzz/opencv:latest
+    volumes:
+    - /home/ale/ubersandro/oss-fuzz/eval-fsan/fuzzing/opencv:/fuzzing-campaign
+  eval-mruby:
+    command: /bin/bash
+    init: true
+    privileged: true
+    stdin_open: true
+    tty: true
+    deploy:
+      replicas: 1
+    environment:
+      PINNED_CORES_START: 98
+      PINNED_CORES_END: 100
+      PROJECT: mruby
+    image: gcr.io/oss-fuzz/mruby:latest
+    volumes:
+    - /home/ale/ubersandro/oss-fuzz/eval-fsan/fuzzing/mruby:/fuzzing-campaign
+  eval-gpac:
+    command: /bin/bash
+    init: true
+    privileged: true
+    stdin_open: true
+    tty: true
+    deploy:
+      replicas: 1
+    environment:
+      PINNED_CORES_START: 101
+      PINNED_CORES_END: 104
+      PROJECT: gpac
+    image: gcr.io/oss-fuzz/gpac:latest
+    volumes:
+    - /home/ale/ubersandro/oss-fuzz/eval-fsan/fuzzing/gpac:/fuzzing-campaign
+  eval-binutils:
+    command: /bin/bash
+    init: true
+    privileged: true
+    stdin_open: true
+    tty: true
+    deploy:
+      replicas: 1
+    environment:
+      PINNED_CORES_START: 105
+      PINNED_CORES_END: 115
+      PROJECT: binutils
+    image: gcr.io/oss-fuzz/binutils:latest
+    volumes:
+    - /home/ale/ubersandro/oss-fuzz/eval-fsan/fuzzing/binutils:/fuzzing-campaign
+  eval-quickjs:
+    command: /bin/bash
+    init: true
+    privileged: true
+    stdin_open: true
+    tty: true
+    deploy:
+      replicas: 1
+    environment:
+      PINNED_CORES_START: 116
+      PINNED_CORES_END: 118
+      PROJECT: quickjs
+    image: gcr.io/oss-fuzz/quickjs:latest
+    volumes:
+    - /home/ale/ubersandro/oss-fuzz/eval-fsan/fuzzing/quickjs:/fuzzing-campaign
+  eval-ndpi:
+    command: /bin/bash
+    init: true
+    privileged: true
+    stdin_open: true
+    tty: true
+    deploy:
+      replicas: 1
+    environment:
+      PINNED_CORES_START: 119
+      PINNED_CORES_END: 129
+      PROJECT: ndpi
+    image: gcr.io/oss-fuzz/ndpi:latest
+    volumes:
+    - /home/ale/ubersandro/oss-fuzz/eval-fsan/fuzzing/ndpi:/fuzzing-campaign
+  eval-pcapplusplus:
+    command: /bin/bash
+    init: true
+    privileged: true
+    stdin_open: true
+    tty: true
+    deploy:
+      replicas: 1
+    environment:
+      PINNED_CORES_START: 130
+      PINNED_CORES_END: 135
+      PROJECT: PcapPlusPlus
+    image: gcr.io/oss-fuzz/pcapplusplus:latest
+    volumes:
+    - /home/ale/ubersandro/oss-fuzz/eval-fsan/fuzzing/pcapplusplus:/fuzzing-campaign
+  eval-openbabel:
+    command: /bin/bash
+    init: true
+    privileged: true
+    stdin_open: true
+    tty: true
+    deploy:
+      replicas: 1
+    environment:
+      PINNED_CORES_START: 136
+      PINNED_CORES_END: 141
+      PROJECT: openbabel
+    image: gcr.io/oss-fuzz/openbabel:latest
+    volumes:
+    - /home/ale/ubersandro/oss-fuzz/eval-fsan/fuzzing/openbabel:/fuzzing-campaign
+  eval-gdal:
+    command: /bin/bash
+    init: true
+    privileged: true
+    stdin_open: true
+    tty: true
+    deploy:
+      replicas: 1
+    environment:
+      PINNED_CORES_START: 142
+      PINNED_CORES_END: 151
+      PROJECT: gdal
+    image: gcr.io/oss-fuzz/gdal:latest
+    volumes:
+    - /home/ale/ubersandro/oss-fuzz/eval-fsan/fuzzing/gdal:/fuzzing-campaign
+  eval-harfbuzz:
+    command: /bin/bash
+    init: true
+    privileged: true
+    stdin_open: true
+    tty: true
+    deploy:
+      replicas: 1
+    environment:
+      PINNED_CORES_START: 152
+      PINNED_CORES_END: 157
+      PROJECT: harfbuzz
+    image: gcr.io/oss-fuzz/harfbuzz:latest
+    volumes:
+    - /home/ale/ubersandro/oss-fuzz/eval-fsan/fuzzing/harfbuzz:/fuzzing-campaign
+  eval-grok:
+    command: /bin/bash
+    init: true
+    privileged: true
+    stdin_open: true
+    tty: true
+    deploy:
+      replicas: 1
+    environment:
+      PINNED_CORES_START: 158
+      PINNED_CORES_END: 160
+      PROJECT: grok
+    image: gcr.io/oss-fuzz/grok:latest
+    volumes:
+    - /home/ale/ubersandro/oss-fuzz/eval-fsan/fuzzing/grok:/fuzzing-campaign
+  eval-wireshark:
+    command: /bin/bash
+    init: true
+    privileged: true
+    stdin_open: true
+    tty: true
+    deploy:
+      replicas: 1
+    environment:
+      PINNED_CORES_START: 161
+      PINNED_CORES_END: 171
+      PROJECT: wireshark
+    image: gcr.io/oss-fuzz/wireshark:latest
+    volumes:
+    - /home/ale/ubersandro/oss-fuzz/eval-fsan/fuzzing/wireshark:/fuzzing-campaign
