@@ -1,0 +1,128 @@
+PROJECT: ffmpeg, LANGUAGE: C
+	FUZZERS: 1122
+	TOP N BY AVG COVERAGE:
+		1. ffmpeg_SWS_fuzzer: 37.02%
+		2. ffmpeg_DEMUXER_fuzzer: 34.22%
+		3. ffmpeg_IO_DEMUXER_fuzzer: 33.15%
+		4. ffmpeg_AV_CODEC_ID_LIBFDK_AAC_DEC_fuzzer: 32.88%
+		5. ffmpeg_AV_CODEC_ID_IMM5_fuzzer: 26.28%
+		6. ffmpeg_AV_CODEC_ID_VVC_fuzzer: 21.67%
+		7. ffmpeg_SWR_fuzzer: 20.6%
+		8. ffmpeg_AV_CODEC_ID_H264_fuzzer: 19.34%
+		9. ffmpeg_AV_CODEC_ID_HEVC_fuzzer: 17.34%
+		10. ffmpeg_AV_CODEC_ID_LIBVPX_VP9_fuzzer: 16.85%
+		11. ffmpeg_AV_CODEC_ID_VC1_fuzzer: 16.66%
+		12. ffmpeg_BSF_TRACE_HEADERS_fuzzer: 15.85%
+		13. ffmpeg_AV_CODEC_ID_MPEG4_DEC_fuzzer: 14.93%
+		14. ffmpeg_AV_CODEC_ID_WMV3_fuzzer: 14.6%
+		15. ffmpeg_AV_CODEC_ID_VC1IMAGE_fuzzer: 13.83%
+		16. ffmpeg_AV_CODEC_ID_AAC_DEC_fuzzer: 12.61%
+		17. ffmpeg_AV_CODEC_ID_AAC_LATM_fuzzer: 12.59%
+		18. ffmpeg_dem_MOV_fuzzer: 12.16%
+		19. ffmpeg_AV_CODEC_ID_TIFF_DEC_fuzzer: 11.77%
+		20. ffmpeg_dem_ASF_fuzzer: 11.44%
+		21. ffmpeg_AV_CODEC_ID_AAC_FIXED_fuzzer: 11.37%
+		22. ffmpeg_AV_CODEC_ID_MPEG2VIDEO_DEC_fuzzer: 11.22%
+		23. ffmpeg_AV_CODEC_ID_MPEG1VIDEO_DEC_fuzzer: 11.21%
+		24. ffmpeg_AV_CODEC_ID_MPEGVIDEO_fuzzer: 11.21%
+		25. ffmpeg_AV_CODEC_ID_DCA_DEC_fuzzer: 10.94%
+PROJECT: imagemagick, LANGUAGE: C
+	FUZZERS: 149
+	encoder_art_fuzzer
+	encoder_jxl_fuzzer
+	huffman_decode_fuzzer
+	encoder_mask_fuzzer
+	encoder_ase_fuzzer
+	encoder_dpx_fuzzer
+	encoder_jng_fuzzer
+	encoder_cals_fuzzer
+	encoder_cube_fuzzer
+	encoder_mono_fuzzer
+	profile_fuzzer
+	encoder_bmp2_fuzzer
+	encoder_pcl_fuzzer
+	encoder_gif_fuzzer
+	encoder_epsf_fuzzer
+	encoder_bmp3_fuzzer
+	encoder_g3_fuzzer
+	ping_fuzzer
+	encoder_j2c_fuzzer
+	encoder_bgro_fuzzer
+	encoder_hrz_fuzzer
+	encoder_cut_fuzzer
+	encoder_pcd_fuzzer
+	encoder_jp2_fuzzer
+	encoder_ept_fuzzer
+
+PROJECT: gpac, LANGUAGE: C
+	FUZZERS: 4
+		fuzz_parse
+		fuzz_m2ts_probe
+		fuzz_route
+		fuzz_probe_analyze
+
+PROJECT: mruby, LANGUAGE: C
+	FUZZERS: 2
+	TOP N BY AVG COVERAGE:
+		1. mruby_proto_fuzzer: 18.13%
+PROJECT: pcapplusplus, LANGUAGE: C++
+	FUZZERS: 5
+	TOP N BY AVG COVERAGE:
+		1. FuzzTargetNg: 44.65%
+		2. FuzzWriter: 16.58%
+		3. FuzzWriterNg: 12.84%
+		4. FuzzTargetSnoop: 7.03%
+PROJECT: kimageformats, LANGUAGE: C++
+	FUZZERS: 25
+	TOP N BY AVG COVERAGE:
+		1. kimgio_raw_fuzzer: 8.99%
+		2. kimgio_heif_fuzzer: 8.86%
+		3. kimgio_avif_fuzzer: 8.78%
+		4. kimgio_jxl_fuzzer: 8.22%
+		5. kimgio_exr_fuzzer: 5.42%
+		6. kimgio_jp2_fuzzer: 4.42%
+		7. kimgio_psd_fuzzer: 4.32%
+		8. kimgio_jxr_fuzzer: 3.87%
+		9. kimgio_xcf_fuzzer: 3.84%
+		10. kimgio_kra_fuzzer: 3.8%
+		11. kimgio_tga_fuzzer: 3.58%
+		12. kimgio_ani_fuzzer: 3.32%
+		13. kimgio_hdr_fuzzer: 3.1%
+		14. kimgio_iff_fuzzer: 2.83%
+		15. kimgio_dds_fuzzer: 2.28%
+		16. kimgio_pfm_fuzzer: 1.88%
+		17. kimgio_sct_fuzzer: 1.71%
+		18. kimgio_pcx_fuzzer: 1.59%
+		19. kimgio_pic_fuzzer: 1.57%
+		20. kimgio_ras_fuzzer: 1.51%
+		21. kimgio_rgb_fuzzer: 1.5%
+		22. kimgio_qoi_fuzzer: 1.47%
+		23. kimgio_ff_fuzzer: 1.46%
+		24. kimgio_tim_fuzzer: 1.46%
+		25. kimgio_pxr_fuzzer: 1.41%
+PROJECT: openbabel, LANGUAGE: C++
+	FUZZERS: 6
+	TOP N BY AVG COVERAGE:
+		1. fuzz_molecule: 27.76%
+		2. fuzz_obconversion_sdf: 10.59%
+		3. fuzz_smart: 8.77%
+		4. fuzz_empty_write: 7.54%
+		5. fuzz_obconversion_smiles: 6.16%
+PROJECT: assimp, LANGUAGE: C++
+	FUZZERS: 15
+	TOP N BY AVG COVERAGE:
+		1. assimp_roundtrip_fuzzer: 39.29%
+		2. assimp_postprocess_fuzzer: 29.04%
+		3. assimp_fuzzer_fbx: 9.99%
+		4. assimp_fuzzer_collada: 8.06%
+		5. assimp_fuzzer_gltf: 7.76%
+		6. assimp_fuzzer_blend: 6.75%
+		7. assimp_fuzzer_glb: 6.3%
+		8. assimp_fuzzer_3mf: 5.8%
+		9. assimp_fuzzer_ase: 5.67%
+		10. assimp_fuzzer_obj: 5.42%
+		11. assimp_fuzzer_amf: 4.87%
+		12. assimp_fuzzer_3ds: 4.09%
+		13. assimp_fuzzer_stl: 3.19%
+		14. assimp_fuzzer_ifc: 0.98%
+TOTAL FUZZERS TO SCHEDULE 74
