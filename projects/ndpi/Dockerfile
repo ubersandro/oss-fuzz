@@ -17,7 +17,7 @@
 # FROM gcr.io/oss-fuzz-base/base-builder:ubuntu-24-04
 FROM fsan-afl-codeql-24:latest
 RUN apt-get update && apt-get install -y make autoconf automake autogen pkg-config libtool flex bison cmake libnuma-dev libpcre2-dev libjson-c-dev
-RUN git clone --depth 1 https://github.com/ntop/nDPI.git ndpi && cd ndpi && git checkout 0c81498aa16332e75dda8eeb63a6f45f8fc2be09
+RUN git clone --depth 1 https://github.com/ntop/nDPI.git ndpi && cd ndpi && git checkout b0a23109069ccea09e302319409f2e5aa73b0f7e # 0c81498aa16332e75dda8eeb63a6f45f8fc2be09
 ADD https://www.tcpdump.org/release/libpcap-1.9.1.tar.gz libpcap-1.9.1.tar.gz
 ADD https://github.com/json-c/json-c/archive/refs/tags/json-c-0.17-20230812.tar.gz json-c-0.17-20230812.tar.gz
 RUN tar -xvzf json-c-0.17-20230812.tar.gz

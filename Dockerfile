@@ -107,6 +107,7 @@ RUN ar -t /usr/lib/libFuzzingEngine.a
 # start fuzzing getting corpora from upstream oss-fuzz when available. When not available, repurpose local ones.
 COPY oss-fuzz/start-campaign.sh $SRC/fuzz.sh
 COPY oss-fuzz/output.py $SRC/output.py
+COPY oss-fuzz/output-full.py $SRC/output-full.py
 COPY oss-fuzz/quick-check.sh $SRC/quick-check.sh
 COPY oss-fuzz/schedule-fuzzer.sh $SRC/schedule-fuzzer.sh
 COPY oss-fuzz/results.sh $SRC/results.sh

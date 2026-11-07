@@ -1,0 +1,32 @@
+[+] Building container for llvm
+[+] Building container for kimageformats
+[+] Building container for ffmpeg
+[+] Building container for imagemagick
+[+] Building container for graphicsmagick
+[+] Building container for ghostscript
+[!] ghostscript build failed
+[+] vlc WARNING: Dockerfile already uses ubuntu-24
+[+] Building container for vlc
+[!] vlc build failed
+[+] Building container for assimp
+[+] Building container for opencv
+[+] Building container for mruby
+[+] Building container for gpac
+[+] Building container for binutils
+[!] binutils build failed
+[+] Building container for quickjs
+[!] quickjs build failed
+[+] ndpi WARNING: Dockerfile already uses ubuntu-24
+[+] Building container for ndpi
+[!] ndpi build failed
+[+] Building container for pcapplusplus
+[+] Building container for openbabel
+[+] gdal WARNING: Dockerfile already uses ubuntu-24
+[+] Building container for gdal
+[!] gdal build failed
+[+] Building container for harfbuzz
+[!] harfbuzz build failed
+[+] Building container for grok
+[+] wireshark WARNING: Dockerfile already uses ubuntu-24
+[+] Building container for wireshark
+[+] Building container for llvm
