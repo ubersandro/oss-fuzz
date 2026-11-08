@@ -5,12 +5,6 @@ if [ "$#" -ne 2 ]; then
     echo "Usage: $0 <harness_path> <project_name>"
     exit 1
 fi
-RESUME_CAMPAIGN=${RESUME_CAMPAIGN:-"yesbaby"}
-if [ ! -z "$RESUME_CAMPAIGN" ]; then
-    export AFL_AUTORESUME=1
-    SKIP_FILTERING=1
-    echo "Resuming campaign for harness: $1, project: $2"
-fi
 
 export AFL_FUZZER_LOOPCOUNT=2000 # TODO modify AFL and FSan to implement effective fuzzing in recovery mode
 # export AFL_IGNORE_SEED_PROBLEMS=1
@@ -146,6 +140,17 @@ if [[ "$HARNESS_NAME" == *"fuzz_route"* ]]; then
     CMIN_TOUT=250
 fi
 # if any corpus, minimize
+outdir="/fuzzing-campaign/${HARNESS_NAME}_0" # store campaign on host
+instance_corpusdir="$OUT/${HARNESS_NAME}_0"
+
+RESUME_CAMPAIGN=${RESUME_CAMPAIGN:-""}
+if [ -d "$outdir" -o ! -z "$RESUME_CAMPAIGN" ]; then
+    echo "[+] OUT DIR EXISTS, RESUMING CAMPAIGN."
+    export AFL_AUTORESUME=1
+    SKIP_FILTERING=1
+    echo "Resuming campaign for harness: $1, project: $2"
+fi
+
 if [ "$(ls -A $CORPUS_DIR)" -a -z "$RESUME_CAMPAIGN" ]; then
     echo "[+] CORPUS NOT EMPTY, PROCEEDING TO MINIMIZATION."
     MINIMIZED_DIR="$OUT/corpus_cmin-${HARNESS_NAME}"
@@ -175,8 +180,7 @@ if [[ "$HARNESS_NAME" == *"fuzz_route"* ]] && [[ "$PROJECT_NAME" == *"gpac"* ]];
     FUZZ_TOUT=250
 fi
 
-outdir="/fuzzing-campaign/${HARNESS_NAME}_0" # store campaign on host
-instance_corpusdir="$OUT/${HARNESS_NAME}_0"
+
 if [ -z "$RESUME_CAMPAIGN" ]; then
     rm -rf "$outdir" 2>/dev/null || true # run with AUTORESUME
     rm -rf "$instance_corpusdir" 2>/dev/null || true

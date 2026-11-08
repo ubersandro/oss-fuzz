@@ -12,17 +12,17 @@
 DB=${1:-$OUT/codeql-db}
 shift || true
 
-CODEQL_KEEP_ENV=${CODEQL_KEEP_ENV:-0}
-if [ "${CODEQL_KEEP_ENV}" != 1 ]; then
-  export CC=${CODEQL_CC:-/usr/local/bin/clang}
-  export CXX=${CODEQL_CXX:-/usr/local/bin/clang++}
-  export CFLAGS="-O1 -fno-omit-frame-pointer -gline-tables-only"
-  export CXXFLAGS="$CFLAGS ${CXXFLAGS_EXTRA:-}"
-  export LDFLAGS=""
-  export SANITIZER=none
-  unset SANITIZER_FLAGS  # `compile` only derives it from $SANITIZER when unset
-  export FUZZING_ENGINE=libfuzzer
-fi
+# CODEQL_KEEP_ENV=${CODEQL_KEEP_ENV:-0}
+# if [ "${CODEQL_KEEP_ENV}" != 1 ]; then
+#   export CC=${CODEQL_CC:-/usr/local/bin/clang}
+#   export CXX=${CODEQL_CXX:-/usr/local/bin/clang++}
+#   export CFLAGS="-O1 -fno-omit-frame-pointer -gline-tables-only"
+#   export CXXFLAGS="$CFLAGS ${CXXFLAGS_EXTRA:-}"
+#   export LDFLAGS=""
+#   export SANITIZER=none
+#   unset SANITIZER_FLAGS  # `compile` only derives it from $SANITIZER when unset
+#   export FUZZING_ENGINE=libfuzzer
+# fi
 # Normally passed by infra/helper.py from project.yaml.
 export FUZZING_LANGUAGE=${FUZZING_LANGUAGE:-c++}
 # A ccache hit compiles nothing, so the tracer would see nothing.
@@ -35,5 +35,5 @@ if [ $# -gt 0 ]; then
     --format=sarif-latest --output="$DB.sarif" "$@"
 else
   codeql database create "$DB" --overwrite --language=c-cpp \
-    --source-root="$SRC" --working-dir="$PWD" --command=compile --threads=0 --ram="${CODEQL_RAM:-8192}"
+    --source-root="$SRC" --working-dir="$PWD" --command=/src/build.sh --threads=0 --ram="${CODEQL_RAM:-8192}"
 fi

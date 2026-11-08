@@ -50,7 +50,7 @@ cd fuzz
 LIBS="../opcodes/libopcodes.a ../libctf/.libs/libctf.a ../bfd/.libs/libbfd.a ../zlib/libz.a ../libsframe/.libs/libsframe.a ../libiberty/libiberty.a"
 for i in fuzz_disassemble fuzz_bfd fuzz_bfd_ext; do
     $CC $CFLAGS -I ../include -I ../bfd -I ../opcodes -c $i.c -o $i.o
-    $CXX $CXXFLAGS $i.o -o $OUT/$i $LIB_FUZZING_ENGINE -Wl,--start-group ${LIBS} -Wl,--end-group
+    $CXX $CXXFLAGS $LDFLAGS $i.o -o $OUT/$i $LIB_FUZZING_ENGINE -Wl,--start-group ${LIBS} -Wl,--end-group
 done
 
 # Build targeted disassembly fuzzers
@@ -61,7 +61,7 @@ else
   for ARCH_TARGET in bfd_arch_arm bfd_arch_mips bfd_arch_i386 bfd_arch_arc bfd_arch_csky bfd_arch_mep; do
       $CC $CFLAGS -I ../include -I ../bfd -I ../opcodes -c fuzz_disas_ext.c -DFUZZ_TARGET_ARCH=$ARCH_TARGET \
         -o fuzz_disas_ext-$ARCH_TARGET.o
-      $CXX $CXXFLAGS fuzz_disas_ext-$ARCH_TARGET.o -o $OUT/fuzz_disas_ext-$ARCH_TARGET $LIB_FUZZING_ENGINE \
+      $CXX $CXXFLAGS $LDFLAGS fuzz_disas_ext-$ARCH_TARGET.o -o $OUT/fuzz_disas_ext-$ARCH_TARGET $LIB_FUZZING_ENGINE \
         -Wl,--start-group ${LIBS} -Wl,--end-group
   done
 fi
@@ -147,7 +147,7 @@ fl["windres"]="resrc.o rescoff.o resbin.o rcparse.o rclex.o winduni.o resres.o $
 fl["ranlib_simulation"]=" "
 fl["strings"]=${OBJ1}
 for fuzzer in ${!fl[@]}; do
-  $CXX $CXXFLAGS $LIB_FUZZING_ENGINE -W -Wall -I./../zlib \
+  $CXX $CXXFLAGS $LIB_FUZZING_ENGINE $LDFLAGS -W -Wall -I./../zlib \
     -o $OUT/fuzz_${fuzzer} fuzz_${fuzzer}.o \
     ${fl[${fuzzer}]} ${LINK_LIBS}
 done
