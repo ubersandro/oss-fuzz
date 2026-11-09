@@ -37,7 +37,11 @@ while IFS= read -r fuzzer || [ -n "$fuzzer" ]; do
 
     PINNED_CORE=$((PINNED_CORES_START + FUZZER_IDX))
     PANE_IDX=$((FUZZER_IDX % FUZZERS_PER_WINDOW))
-    CMD="PINNED_CORE=$PINNED_CORE /src/fuzz.sh /out/$fuzzer $PROJECT; exec bash"
+    if [ ! -z $RESUME_CAMPAIGN ]; then
+        CMD="PINNED_CORE=$PINNED_CORE RESUME_CAMPAIGN=1 /src/fuzz.sh /out/$fuzzer $PROJECT; exec bash"
+    else
+        CMD="PINNED_CORE=$PINNED_CORE /src/fuzz.sh /out/$fuzzer $PROJECT; exec bash"
+    fi
 
     if [ "$PANE_IDX" -eq 0 ]; then
         # First fuzzer of each group: create a new window in the current tmux

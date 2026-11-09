@@ -245,8 +245,11 @@ def main():
     funnel = Funnel()
     classify(fuzzer, Path(f"/crashes-{fuzzer}"), first_hit, funnel, "99")
     classify(fuzzer, Path(f"/crashes-{fuzzer}"), first_hit, funnel, "134")
-    classify(fuzzer, Path(f"/fuzzing-campaign/{fuzzer}_0/default/crashes"),
-             first_hit, funnel)
+    fuzzpath = Path(f"/fuzzing-campaign/{fuzzer}_0/default")
+    for dir in fuzzpath.iterdir():
+        print(f"# CHECKING {dir}")
+        if dir.is_dir() and dir.name.startswith("crashes"):
+            classify(fuzzer, dir , first_hit, funnel)
     log(f"# DISTINCT LOCATIONS: {len(first_hit)}")
     funnel.log(len(first_hit))
     if args.signatures:
