@@ -239,7 +239,8 @@ def main():
                         help="write one line per signature to this file")
     args = parser.parse_args()
     fuzzer = os.path.basename(args.fuzzer)
-    os.environ.setdefault("HWASAN_OPTIONS", DEFAULT_HWASAN_OPTIONS)
+    # os.environ.setdefault("HWASAN_OPTIONS", DEFAULT_HWASAN_OPTIONS)
+    os.environ["HWASAN_OPTIONS"] = DEFAULT_HWASAN_OPTIONS # override the opts
 
     first_hit = {}
     funnel = Funnel()
