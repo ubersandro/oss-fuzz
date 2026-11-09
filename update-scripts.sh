@@ -4,7 +4,10 @@ for c in $CONTAINERS; do
     echo "CONTAINER $c"
     docker cp ./results.sh $c:/src/results.sh
     docker cp ./output.py $c:/src/output.py
+    docker cp ./output-full.py $c:/src/output-full.py
+    docker cp ./codeql-oss-fuzz $c:/usr/local/bin/codeql-oss-fuzz
     docker cp ./start-campaign.sh $c:/src/fuzz.sh
+    docker cp ./codeql/codeql-struct-punning $c:/src/codeql-struct-punning
     docker cp ./collect-fuzzer-output.sh $c:/src/collect-fuzzer-output.sh
     docker exec $c bash -c "chmod +x /src/results.sh"
     docker exec $c bash -c "chmod +x /src/collect-fuzzer-output.sh"

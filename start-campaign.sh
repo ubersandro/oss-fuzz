@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Starts (or resumes) an AFL++ campaign on an FSan harness.
 # set -x
 
 if [ "$#" -ne 2 ]; then
@@ -6,40 +7,46 @@ if [ "$#" -ne 2 ]; then
     exit 1
 fi
 
-export AFL_FUZZER_LOOPCOUNT=2000 # TODO modify AFL and FSan to implement effective fuzzing in recovery mode
-# export AFL_IGNORE_SEED_PROBLEMS=1
+export AFL_FUZZER_LOOPCOUNT=2000 # arbitrary
+# export AFL_IGNORE_SEED_PROBLEMS=1 # do not
 export AFL_PIZZA_MODE=-1
-export AFL_CRASH_EXITCODE=99
+export AFL_CRASH_EXITCODE=99 # fixed in runtime
+# A seed that exits 99 in the dry run (the first with a new FSan violation) is
+# saved to default/crashes, where classify_crashes.py looks.
+export AFL_CRASHING_SEEDS_AS_NEW_CRASH=1
+# FSan already reports each violation once (fsan_dedup_violations): save every
+# such crash (exit 99), also one on the edges of an earlier crash; segfaults
+# and aborts keep AFL++'s deduplication (needs the AFL++ with
+# AFL_KEEP_ALL_CRASHES).
+export AFL_KEEP_ALL_CRASHES=1
 export AFL_NO_UI=1
-export AFL_TESTCACHE_SIZE=${AFL_TESTCACHE_SIZE:-500} # MB
+export AFL_TESTCACHE_SIZE=${AFL_TESTCACHE_SIZE:-500}
 export AFL_BASE=$SRC/aflplusplus/
-# just register the crash
-export HWASAN_OPTIONS=${HWASAN_OPTIONS/"recover_report=summary"/"recover_report=quiet"}
+# fsan_dedup_violations: only an input with a violation that no earlier input
+# had exits 99, so the fuzzer goes through the false positives it already saw.
+# The AFL++ tools also set LSAN_OPTIONS, which HWASan reads after these: its
+# handle_segv=0, abort_on_error=1, symbolize=0 and allocator_may_return_null=1
+# win, so segfaults and aborts reach AFL++ as signals, apart from exit 99.
+export HWASAN_OPTIONS=halt_on_error=0:recover_report=quiet:fsan_dedup_violations=1:dedup_stack_depth=3:exitcode=99:abort_on_error=1:symbolize=0:detect_leaks=0:malloc_context_size=0:allocator_may_return_null=1
+
 unset HWASAN_SYMBOLIZER_PATH
 
-HARNESS_FULLPATH=$(realpath $1)
+HARNESS_FULLPATH=$(realpath "$1")
 PROJECT_NAME=$2
-PRODUCE_OUTPUT=${PRODUCE_OUTPUT:-1}
+
 PINNED_CORE=${PINNED_CORE:-0}
 FILTER_JOBS=${FILTER_JOBS:-10}
-# be smart and find the first core starting from 0 where NO FUZZER PROCESS is pinned
-echo "Using pinned core: $PINNED_CORE"
-sleep 2
-WITH_DICTIONARY=${WITH_DICTIONARY:-""}
+# AFL++ reads at most MAX_FILE (1 MB) of a seed.
+MAX_INPUT_SIZE=${MAX_INPUT_SIZE:-1048576}
 
+echo "Using pinned core: $PINNED_CORE"
 echo "Using harness: $HARNESS_FULLPATH"
 echo "Using project name: $PROJECT_NAME"
-echo "PRODUCE OUTPUT: $PRODUCE_OUTPUT"
-sleep 1
 
-# assert the file exists
 if [ ! -f "$HARNESS_FULLPATH" ]; then
     echo "Harness file $HARNESS_FULLPATH does not exist. Please provide a valid path to the harness."
     exit 1
 fi
-
-HARNESS_NAME=$(basename "$HARNESS_FULLPATH")
-
 if [ ! -d "$OUT" ]; then
     echo "Output directory $OUT does not exist. Please set the OUT environment variable."
     exit 1
@@ -48,9 +55,10 @@ if [ ! -d "/fuzzing-campaign" ]; then
     echo "/fuzzing-campaign does not exist."
     exit 1
 fi
-pip install tqdm
+HARNESS_NAME=$(basename "$HARNESS_FULLPATH")
+OUTDIR="/fuzzing-campaign/${HARNESS_NAME}_0" # store campaign on host
 
-# find a dictionary: WITH_DICTIONARY, then $OUT/<harness>.dict, then <harness>.options
+WITH_DICTIONARY=${WITH_DICTIONARY:-""}
 if [ -z "$WITH_DICTIONARY" ]; then
     if [ -f "$OUT/${HARNESS_NAME}.dict" ]; then
         WITH_DICTIONARY="$OUT/${HARNESS_NAME}.dict"
@@ -63,143 +71,163 @@ if [ -z "$WITH_DICTIONARY" ]; then
 fi
 echo "Using dictionary: ${WITH_DICTIONARY:-none}"
 
-# get the corpus: reuse the pinned copy, or pin it on the first run
-PIN_DIR="/fuzzing-campaign/corpus-pins"
-PINNED_CORPUS="$PIN_DIR/${PROJECT_NAME}_${HARNESS_NAME}.zip"
-PINNED_HASH="$PINNED_CORPUS.sha256"
-mkdir -p "$PIN_DIR" || true
+FUZZ_TOUT="${FUZZ_TOUT:-100}"
+# ADJs. for trashy harnesses
+# if [[ "$HARNESS_NAME" == *"fuzz_route"* ]] && [[ "$PROJECT_NAME" == *"gpac"* ]]; then
+#     FUZZ_TOUT=250
+# fi
+# afl-cmin drops the inputs that time out, so it uses the fuzzer's timeout: it
+# keeps what the fuzzer can run.
+CMIN_TOUT="${CMIN_TOUT:-$FUZZ_TOUT}"
 
-if [ -f "$PINNED_CORPUS" ]; then
-    echo "[+] USING PINNED CORPUS: $PINNED_CORPUS"
-else
-    CORPUS_TMP_FILE="/tmp/corpus.${HARNESS_NAME}.zip"
-    wget -O $CORPUS_TMP_FILE "https://storage.googleapis.com/${PROJECT_NAME}-backup.clusterfuzz-external.appspot.com/corpus/libFuzzer/${PROJECT_NAME}_${HARNESS_NAME}/public.zip" || wget -O $CORPUS_TMP_FILE "https://storage.googleapis.com/${PROJECT_NAME}-backup.clusterfuzz-external.appspot.com/corpus/libFuzzer/${HARNESS_NAME}/public.zip"
-
-    if [ -f "$CORPUS_TMP_FILE" -a -s "$CORPUS_TMP_FILE" ]; then
-        echo "[+] CORPUS DOWNLOADED SUCCESSFULLY: $CORPUS_TMP_FILE"
-        stat $CORPUS_TMP_FILE
-        mv "$CORPUS_TMP_FILE" "$PINNED_CORPUS"
-    else
-        rm -f "$CORPUS_TMP_FILE" 2>/dev/null || true
-        # check if something like HARNESS_NAME*zip exists in /out, if so, use that as corpus
-        LOCAL_CORPUS=$(ls /out/${HARNESS_NAME}*.zip 2>/dev/null | head -n 1)
-        if [ -f "$LOCAL_CORPUS" ]; then
-            echo "[+] CORPUS FOUND LOCALLY: $LOCAL_CORPUS"
-            cp "$LOCAL_CORPUS" "$PINNED_CORPUS"
-        else
-            exit 1
-        fi
-    fi
-    sha256sum "$PINNED_CORPUS" > "$PINNED_HASH"
-    echo "[+] CORPUS PINNED: $PINNED_CORPUS"
+# A new campaign gets its seeds from the pinned OSS-Fuzz corpus
+# (KICKSTART_WITH_EXT_SEEDS), else from the harness's seed corpus in $OUT, else
+# from a single dummy input. They are unpacked, cut to MAX_INPUT_SIZE, then
+# minimized by coverage alone: crashes and violations are the fuzzer's business.
+RESUME_CAMPAIGN=${RESUME_CAMPAIGN:-""}
+SKIP_MINIMIZATION=${SKIP_MINIMIZATION:-""}
+RECORD_SEEDS=${RECORD_SEEDS:-"yesbaby"}
+KICKSTART_WITH_EXT_SEEDS=${KICKSTART_WITH_EXT_SEEDS:-""}
+if [ -d "$OUTDIR" ] && [ -n "$RESUME_CAMPAIGN" ]; then
+    echo "[+] OUT DIR EXISTS, RESUMING CAMPAIGN."
+    export AFL_AUTORESUME=1
+    RESUME_CAMPAIGN=1
+    echo "Resuming campaign for harness: $1, project: $2"
 fi
 
-if ! sha256sum -c "$PINNED_HASH"; then
-    echo "[!] PINNED CORPUS DOES NOT MATCH $PINNED_HASH"
-    exit 1
-fi
+CORPUS_DIR="$OUT/corpus-${HARNESS_NAME}"  # the corpus, unpacked
+SEED_DIR="$OUT/${HARNESS_NAME}_0"         # the corpus, minimized: what afl-fuzz starts from
+FILTERED_DIR="/crashes-$HARNESS_NAME"     # what seeds trigger, with their exit code as suffix
 
-# unpack into an empty directory, so the corpus is exactly what was pinned
-CORPUS_DIR="$OUT/corpus-${HARNESS_NAME}"
-rm -rf "$CORPUS_DIR" 2>/dev/null || true
-unzip -o "$PINNED_CORPUS" -d "$CORPUS_DIR" 2>&1 >/dev/null 2>&1
-echo "[+] CORPUS UNPACKED! SIZE IS: $(ls $CORPUS_DIR | wc -l)"
-sleep 1
-
-#create filter dir
-FILTERED_DIR=/crashes-$HARNESS_NAME
-rm -rf $FILTERED_DIR 2>/dev/null || true
-mkdir -p $FILTERED_DIR 2>/dev/null || true
-
-filter_input() {
-    local input=$1
+# RECORD_SEEDS: copies an input that the harness does not run cleanly to
+# $FILTERED_DIR, with the exit code as suffix (99: an FSan violation, 124: a
+# timeout), for classify_crashes.py. It does not change the corpus.
+record_input() {
+    local input=$1 rc
     timeout -s TERM 2s "$HARNESS_FULLPATH" "$input" >/dev/null 2>&1
-    local rc=$?
-
+    rc=$?
     if [ $rc -ne 0 ]; then
-        echo "[!] Input $input caused a timeout or crash (exit code: $rc), MOVING IT."
-        mv "$input" "$FILTERED_DIR"/$(basename "$input").$rc
+        cp "$input" "$FILTERED_DIR/$(basename "$input").$rc"
     fi
     return 0
 }
 
-if [ -z "$SKIP_FILTERING" ]
-then
-    export HARNESS_FULLPATH FILTERED_DIR
-    export -f filter_input
-    echo "[+] FILTERING $(ls "$CORPUS_DIR" | wc -l) INPUTS WITH $FILTER_JOBS JOBS"
-    find "$CORPUS_DIR" -maxdepth 1 -type f -print0 | xargs -0 -r -P "$FILTER_JOBS" -n 1 bash -c 'filter_input "$1"' _
-fi
-set -x
-echo "[+] CORPUS FILTERED:"
-echo "[+] FOUND CRASHES/HANGS IN CORPUS: $(ls $FILTERED_DIR | wc -l) files"
-sleep 1
-CMIN_TOUT="${CMIN_TOUT:-100}"
-# if the harness is fuzz_route, set all TOUTs to 250
-if [[ "$HARNESS_NAME" == *"fuzz_route"* ]]; then
-    CMIN_TOUT=250
-fi
-# if any corpus, minimize
-outdir="/fuzzing-campaign/${HARNESS_NAME}_0" # store campaign on host
-instance_corpusdir="$OUT/${HARNESS_NAME}_0"
-
-RESUME_CAMPAIGN=${RESUME_CAMPAIGN:-""}
-if [ -d "$outdir" -o ! -z "$RESUME_CAMPAIGN" ]; then
-    echo "[+] OUT DIR EXISTS, RESUMING CAMPAIGN."
-    export AFL_AUTORESUME=1
-    SKIP_FILTERING=1
-    echo "Resuming campaign for harness: $1, project: $2"
-fi
-
-if [ "$(ls -A $CORPUS_DIR)" -a -z "$RESUME_CAMPAIGN" ]; then
-    echo "[+] CORPUS NOT EMPTY, PROCEEDING TO MINIMIZATION."
-    MINIMIZED_DIR="$OUT/corpus_cmin-${HARNESS_NAME}"
-    rm -rf "$MINIMIZED_DIR" 2>/dev/null || true
-    echo "[+] MINIMIZING CORPUS WITH AFL-CMIN: CURRENT SIZE IS: $(ls $CORPUS_DIR | wc -l)"
-    $AFL_BASE/afl-cmin -t $CMIN_TOUT -i "$CORPUS_DIR" -o "$MINIMIZED_DIR" -m none -T 24 -- $HARNESS_FULLPATH @@
-    NEW_SIZE=$(ls $MINIMIZED_DIR/ | wc -l)
-    if [ $NEW_SIZE -eq 0 ]; then
-        echo "[!] MINIMIZATION FAILED, USING ORIGINAL CORPUS."
-        mv $CORPUS_DIR "$MINIMIZED_DIR" 2>/dev/null || true
-        CORPUS_DIR="$MINIMIZED_DIR"
-    else
-        echo "[+] MINIMIZATION SUCCEEDED, NEW SIZE IS: $NEW_SIZE"
-        CORPUS_DIR="$MINIMIZED_DIR"
+# Keeps the inputs that add coverage. The harness exits 99 after an input with
+# a new FSan violation: without AFL_CRASH_EXITCODE that is a normal run, whose
+# coverage counts, so violations and false positives stay in the corpus. Real
+# crashes go to $FILTERED_DIR/cmin, not into the corpus; timeouts are dropped.
+do_minimization() {
+    local corpus_dir=$1 minimized_dir=$2 new_size
+    echo "[+] MINIMIZING CORPUS WITH AFL-CMIN: CURRENT SIZE IS: $(ls "$corpus_dir" | wc -l)"
+    rm -rf "$minimized_dir"
+    env -u AFL_CRASH_EXITCODE "$AFL_BASE/afl-cmin" -t "$CMIN_TOUT" -i "$corpus_dir" -o "$minimized_dir" -m none -T "$FILTER_JOBS" --crash-dir "$FILTERED_DIR/cmin" -- "$HARNESS_FULLPATH" @@
+    new_size=$(ls "$minimized_dir" 2>/dev/null | wc -l)
+    if [ "$new_size" -eq 0 ]; then
+        echo "[!] MINIMIZATION FAILED, USING THE WHOLE CORPUS."
+        mkdir -p "$minimized_dir"
+        cp -a "$corpus_dir"/. "$minimized_dir"/
+        return 1
     fi
-    sleep 1
+    echo "[+] MINIMIZATION SUCCEEDED, NEW SIZE IS: $new_size"
+    return 0
+}
+
+if [ -n "$RESUME_CAMPAIGN" ]; then
+    # AFL_AUTORESUME resumes from the queue in $OUTDIR, whatever -i says.
+    INDIR="$OUTDIR"
 else
-    echo "[+] CORPUS IS EMPTY, SKIPPING MINIMIZATION."
+    SEED_ZIP=""
+    if [ -n "$KICKSTART_WITH_EXT_SEEDS" ]; then
+        # do the download/find it locally
+        PIN_DIR="/fuzzing-campaign/corpus-pins"
+        mkdir -p "$PIN_DIR" || true
+        PINNED_CORPUS="$PIN_DIR/${PROJECT_NAME}_${HARNESS_NAME}.zip"
+        PINNED_HASH="$PINNED_CORPUS.sha256"
+        if [ -f "$PINNED_CORPUS" ]; then
+            echo "[+] USING PINNED CORPUS: $PINNED_CORPUS"
+        else
+            CORPUS_TMP_FILE="/tmp/corpus.${HARNESS_NAME}.zip"
+            wget -O "$CORPUS_TMP_FILE" "https://storage.googleapis.com/${PROJECT_NAME}-backup.clusterfuzz-external.appspot.com/corpus/libFuzzer/${PROJECT_NAME}_${HARNESS_NAME}/public.zip" || wget -O "$CORPUS_TMP_FILE" "https://storage.googleapis.com/${PROJECT_NAME}-backup.clusterfuzz-external.appspot.com/corpus/libFuzzer/${HARNESS_NAME}/public.zip"
+
+            if [ -f "$CORPUS_TMP_FILE" ] && [ -s "$CORPUS_TMP_FILE" ]; then
+                echo "[+] CORPUS DOWNLOADED SUCCESSFULLY: $CORPUS_TMP_FILE"
+                stat "$CORPUS_TMP_FILE"
+                mv "$CORPUS_TMP_FILE" "$PINNED_CORPUS"
+            else
+                rm -f "$CORPUS_TMP_FILE" 2>/dev/null || true
+                # check if something like HARNESS_NAME*zip exists in /out, if so, use that as corpus
+                LOCAL_CORPUS=$(ls /out/"${HARNESS_NAME}"*.zip 2>/dev/null | head -n 1)
+                if [ -f "$LOCAL_CORPUS" ]; then
+                    echo "[+] CORPUS FOUND LOCALLY: $LOCAL_CORPUS"
+                    cp "$LOCAL_CORPUS" "$PINNED_CORPUS"
+                else
+                    exit 1
+                fi
+            fi
+            sha256sum "$PINNED_CORPUS" > "$PINNED_HASH"
+            echo "[+] CORPUS PINNED: $PINNED_CORPUS"
+        fi
+        SEED_ZIP="$PINNED_CORPUS"
+    elif [ -f "$OUT/${HARNESS_NAME}_seed_corpus.zip" ]; then
+        SEED_ZIP="$OUT/${HARNESS_NAME}_seed_corpus.zip"
+        echo "[+] USING THE HARNESS'S SEED CORPUS: $SEED_ZIP"
+    fi
+
+    # unpack into an empty directory, so the corpus is exactly what was pinned
+    rm -rf "$CORPUS_DIR" 2>/dev/null || true
+    mkdir -p "$CORPUS_DIR"
+    if [ -n "$SEED_ZIP" ]; then
+        unzip -qo "$SEED_ZIP" -d "$CORPUS_DIR"
+    fi
+    find "$CORPUS_DIR" -maxdepth 1 -type f -size +"${MAX_INPUT_SIZE}"c -printf "[!] Input %p is too large (%s bytes), deleting it.\n" -delete
+    if [ -z "$(ls -A "$CORPUS_DIR")" ]; then
+        echo "[!] NO SEEDS, STARTING FROM A DUMMY INPUT."
+        printf 'a' > "$CORPUS_DIR/dummy"
+    fi
+    echo "[+] CORPUS UNPACKED! SIZE IS: $(ls "$CORPUS_DIR" | wc -l)"
+
+    rm -rf "$FILTERED_DIR" 2>/dev/null || true
+    mkdir -p "$FILTERED_DIR" 2>/dev/null || true
+    if [ -n "$RECORD_SEEDS" ]; then
+        export -f record_input
+        export HARNESS_FULLPATH FILTERED_DIR
+        echo "[+] RECORDING WHAT $(ls "$CORPUS_DIR" | wc -l) INPUTS TRIGGER WITH $FILTER_JOBS JOBS"
+        find "$CORPUS_DIR" -maxdepth 1 -type f -print0 | xargs -0 -r -P "$FILTER_JOBS" -n 1 bash -c 'record_input "$1"' _
+        echo "[+] RECORDED, BY EXIT CODE:"
+        find "$FILTERED_DIR" -maxdepth 1 -type f | sed 's/.*\.//' | sort | uniq -c
+    fi
+
+    if [ -z "$SKIP_MINIMIZATION" ]; then
+        do_minimization "$CORPUS_DIR" "$SEED_DIR"
+        INDIR="$SEED_DIR"
+    else
+        INDIR="$CORPUS_DIR"
+    fi
+
+    # The dry run is the first run of every seed, so the first seed with an FSan
+    # violation exits 99 and is skipped: with a single seed, AFL++ would give up.
+    if [ "$(ls "$INDIR" | wc -l)" -eq 1 ]; then
+        SEED=$(ls "$INDIR")
+        cp "$INDIR/$SEED" "$INDIR/$SEED.copy"
+    fi
 fi
 
-$AFL_BASE/afl-system-config
+# set up parameters
+"$AFL_BASE/afl-system-config"
+HOURS=${HOURS:-72} # 3 day runs
+FUZZ_SECONDS=$((HOURS * 3600)) # not SECONDS, which bash counts up
 
-SECONDS=$((72 * 3600)) # 3 day runs
-FUZZ_TOUT="${FUZZ_TOUT:-100}"
-# if the harness is fuzz_route in project gpac, set all TOUTs to 250
-if [[ "$HARNESS_NAME" == *"fuzz_route"* ]] && [[ "$PROJECT_NAME" == *"gpac"* ]]; then
-    FUZZ_TOUT=250
+echo "Fuzzing on CORE $PINNED_CORE"
+FUZZ_CMD=("$AFL_BASE/afl-fuzz" -i "$INDIR" -o "$OUTDIR" -b "$PINNED_CORE" -V "$FUZZ_SECONDS" -t "${FUZZ_TOUT}+")
+if [ -n "$WITH_DICTIONARY" ]; then
+    FUZZ_CMD+=(-x "$WITH_DICTIONARY")
 fi
-
-
-if [ -z "$RESUME_CAMPAIGN" ]; then
-    rm -rf "$outdir" 2>/dev/null || true # run with AUTORESUME
-    rm -rf "$instance_corpusdir" 2>/dev/null || true
-    cp -r $CORPUS_DIR "$instance_corpusdir" # this might be empty
+# AFL++ seeds its RNG at random; RNG_SEED fixes it (-s), to repeat a run.
+if [ -n "${RNG_SEED:-}" ]; then
+    echo "Using RNG seed: $RNG_SEED"
+    FUZZ_CMD+=(-s "$RNG_SEED")
 fi
+FUZZ_CMD+=(-- "$HARNESS_FULLPATH" @@)
 
-echo "launching fuzzer on core $PINNED_CORE"
-
-DICT=""
-if [ ! -z "$WITH_DICTIONARY" ]; then
-    DICT=" -x ${WITH_DICTIONARY} "
-fi
-CMD="AFL_SEED=$RANDOM $AFL_BASE/afl-fuzz -i \"$instance_corpusdir\" -o \"$outdir\" -b$PINNED_CORE -V $SECONDS $DICT -t $FUZZ_TOUT+ -- $HARNESS_FULLPATH @@"
-if [ "$PRODUCE_OUTPUT" -eq 0 ]; then
-    CMD="$CMD > /dev/null 2>&1"
-fi
-
-eval "$CMD"
-echo DONE!
-echo CONTENT OF OUT DIRECTORIES for CRASHES :k
-
-ls -l $OUT/$HARNESS_NAME*/crashes
+# do the fucking fuzzing
+"${FUZZ_CMD[@]}"

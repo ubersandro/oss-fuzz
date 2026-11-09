@@ -81,3 +81,33 @@ predicate pointsToStruct(Type t, Class s) {
   s = t.getUnspecifiedType().(PointerType).getBaseType().getUnspecifiedType() and
   not s instanceof Union
 }
+
+module AllocConfig implements DataFlow::ConfigSig {
+  predicate isSource(DataFlow::Node n) { customAllocator(n.asExpr().(Call).getTarget(), _) }
+
+  // the operand without conversions: `(OP *)(slab = new_slab(n))` converts a parenthesis
+  predicate isSink(DataFlow::Node n) {
+    exists(Cast c | n.asExpr() = c.getExpr().getUnconverted() and pointsToStruct(c.getType(), _))
+  }
+}
+
+module Alloc = DataFlow::Global<AllocConfig>;
+
+/**
+ * The result of `call`, a call to a custom allocator, flows into `c`, a
+ * conversion to a pointer to struct `s`. `call` is the outermost allocator
+ * call: the `xmalloc` call inside `xzalloc` does not count, unless the
+ * allocator itself converts (`struct S *new_s(void) { return xmalloc(sizeof(struct S)); }`).
+ */
+predicate allocatorResult(Call call, Cast c, Class s) {
+  exists(DataFlow::Node source, DataFlow::Node sink |
+    Alloc::flow(source, sink) and
+    call = source.asExpr() and
+    sink.asExpr() = c.getExpr().getUnconverted() and
+    pointsToStruct(c.getType(), s)
+  ) and
+  (
+    not customAllocator(call.getEnclosingFunction(), _) or
+    c.getEnclosingFunction() = call.getEnclosingFunction()
+  )
+}

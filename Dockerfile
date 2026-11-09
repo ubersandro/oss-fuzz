@@ -2,7 +2,6 @@ FROM gcr.io/oss-fuzz-base/base-builder:latest@sha256:1f9cf74bc3d7029b528494542f9
 ENV DEBIAN_FRONTEND=noninteractive
 ENV SANITIZER=none
 RUN apt-get update && apt-get install -y openssh-client nano vim gdb cmake ninja-build tmux lldb htop zlib1g-dev && apt-get clean && rm -rf /var/lib/apt/lists/*
-# copy & build LLVM
 RUN mkdir $SRC/fsan
 WORKDIR $SRC/fsan
 COPY llvm-project $SRC/fsan/llvm-project
@@ -21,9 +20,9 @@ ENV CXX=""
 ENV LDFLAGS=""
 
 WORKDIR $LLVM/build
-RUN ls -l /usr/include/zlib.h; find / -name 'libz.*' -not -path '/proc/*' 2>/dev/null; which cmake; env | grep -E 'CMAKE|SYSROOT'; dpkg -l | grep zlib
 # Always enable assertions to check everything is good
-RUN cmake -DLLVM_ENABLE_PROJECTS="clang;lld" -DLLVM_ENABLE_RUNTIMES="compiler-rt" -DCMAKE_BUILD_TYPE=Release -DLLVM_ENABLE_ASSERTIONS=On -GNinja -DLLVM_PARALLEL_LINK_JOBS=30 -DCLANG_ENABLE_STATIC_ANALYZER=OFF -DCLANG_ENABLE_ARCMT=OFF -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DLLVM_ENABLE_LLD=ON ../llvm/ -DLLVM_FORCE_ENABLE_STATS=ON -DLLVM_TARGETS_TO_BUILD=X86 -DLLVM_TARGETS_TO_BUILD=X86 -DLLVM_INCLUDE_TESTS=OFF -DLLVM_INCLUDE_EXAMPLES=OFF -DLLVM_INCLUDE_BENCHMARKS=OFF -DLLVM_INCLUDE_DOCS=OFF -DCOMPILER_RT_DEFAULT_TARGET_ONLY=ON -DCOMPILER_RT_BUILD_XRAY=OFF -DCOMPILER_RT_BUILD_LIBFUZZER=OFF -DCOMPILER_RT_BUILD_MEMPROF=OFF -DCOMPILER_RT_BUILD_ORC=OFF -DCOMPILER_RT_BUILD_GWP_ASAN=OFF -DCOMPILER_RT_SANITIZERS_TO_BUILD="hwasan"  -DLLVM_ENABLE_ZLIB=FORCE_ON  && ninja -j120 && ninja install
+# !!!! change for machines with fewer cores, explosion danger !!!
+RUN cmake -DLLVM_ENABLE_PROJECTS="clang;lld" -DLLVM_ENABLE_RUNTIMES="compiler-rt" -DCMAKE_BUILD_TYPE=Release -DLLVM_ENABLE_ASSERTIONS=On -GNinja -DLLVM_PARALLEL_LINK_JOBS=20 -DCLANG_ENABLE_STATIC_ANALYZER=OFF -DCLANG_ENABLE_ARCMT=OFF -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DLLVM_ENABLE_LLD=ON ../llvm/ -DLLVM_FORCE_ENABLE_STATS=ON -DLLVM_TARGETS_TO_BUILD=X86 -DLLVM_TARGETS_TO_BUILD=X86 -DLLVM_INCLUDE_TESTS=OFF -DLLVM_INCLUDE_EXAMPLES=OFF -DLLVM_INCLUDE_BENCHMARKS=OFF -DLLVM_INCLUDE_DOCS=OFF -DCOMPILER_RT_DEFAULT_TARGET_ONLY=ON -DCOMPILER_RT_BUILD_XRAY=OFF -DCOMPILER_RT_BUILD_LIBFUZZER=OFF -DCOMPILER_RT_BUILD_MEMPROF=OFF -DCOMPILER_RT_BUILD_ORC=OFF -DCOMPILER_RT_BUILD_GWP_ASAN=OFF -DCOMPILER_RT_SANITIZERS_TO_BUILD="hwasan"  -DLLVM_ENABLE_ZLIB=FORCE_ON  && ninja -j120 && ninja install
 
 WORKDIR $LLVM/build-runtimes
 RUN cmake -GNinja ../runtimes \
@@ -49,31 +48,28 @@ ENV LLVM_AS="$LLVM_BIN/llvm-as"
 ENV LLVM_AR="$LLVM_BIN/llvm-ar"
 ENV LLVM_RANLIB="$LLVM_BIN/llvm-ranlib"
 
-# AFL - clone pinned version
 ENV AFL="$SRC/aflplusplus"
 RUN rm -rf $AFL || true
-# RUN git clone https://github.com/ubersandro/AFLplusplus.git $AFL
-# TODO: pin version
 COPY fsan-afl $AFL
 WORKDIR $AFL
 
-# APPLY PATCH FOR FSAN LTO
-RUN sed -i 's/\- \-flto=full/\- \-flto\=full \-\-ld-path=\/src\/fsan\/llvm\-project\/build\/bin\/ld.lld/g' $AFL/GNUmakefile.llvm
-RUN sed -i 's/\- \-flto=thin/\- \-flto\=thin \-\-ld-path=\/src\/fsan\/llvm\-project\/build\/bin\/ld.lld/g' $AFL/GNUmakefile.llvm
-RUN sed -i 's/\- \-flto/\- \-flto \-\-ld-path=\/src\/fsan\/llvm\-project\/build\/bin\/ld.lld/g' $AFL/GNUmakefile.llvm
+# APPLY PATCH FOR FSAN LTO (stale)
+# RUN sed -i 's/\- \-flto=full/\- \-flto\=full \-\-ld-path=\/src\/fsan\/llvm\-project\/build\/bin\/ld.lld/g' $AFL/GNUmakefile.llvm
+# RUN sed -i 's/\- \-flto=thin/\- \-flto\=thin \-\-ld-path=\/src\/fsan\/llvm\-project\/build\/bin\/ld.lld/g' $AFL/GNUmakefile.llvm
+# RUN sed -i 's/\- \-flto/\- \-flto \-\-ld-path=\/src\/fsan\/llvm\-project\/build\/bin\/ld.lld/g' $AFL/GNUmakefile.llvm
 
 # NOTE: this is going to build AFL with regular LLVM (minus some changes we can't tweak in the current implementation of FSan because we touch the anlyses in LLVM. Performance toll should be limited though.)
 RUN LLVM_CONFIG=$LLVM_BIN/llvm-config make -j12 CC=$LLVM_BIN/clang CXX=$LLVM_BIN/clang++ LDFLAGS="--ld-path=/src/fsan/llvm-project/build/bin/ld.lld" AR=$LLVM_BIN/llvm-ar AS=$LLVM_BIN/llvm-as RANLIB=$LLVM_BIN/llvm-ranlib
 
 ENV CC="$AFL/afl-clang-fast"
 ENV CXX="$AFL/afl-clang-fast++"
-ENV FSAN_BLOCK_FLAGS="-mllvm -fsan-blocklist-tag-filepath=/src/fsan.blocklist -mllvm -fsan-list-of-vars-to-blocklist=/src/fsan.blocklist.vars"
 
-ENV CFLAGS="-O2 -g3 -DFUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION -pthread -fno-common -fno-data-sections -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -L/src/fsan/runtimes/lib/ -fno-discard-value-names  -fsanitize=hwaddress,fsan-heap  -mllvm -disable-loop-idiom-all -mllvm -vectorize-slp=0 -mllvm -vectorize-loops=0 -mllvm -rewrite-ptr-subs=1 -mllvm -enable-tail-merge=0 -mllvm -hwasan-recover=1 --ld-path=/src/fsan/llvm-project/build/bin/ld.lld -Wno-unused-command-line-argument ${FSAN_BLOCK_FLAGS}"
-ENV CXXFLAGS="-O2 -g3 -DFUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION -pthread -fno-common -fno-data-sections -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -L/src/fsan/runtimes/lib/ -fno-discard-value-names -stdlib=libc++ -nostdinc++ -isystem /src/fsan/runtimes/include/c++/v1 -fsanitize=hwaddress,fsan-heap  -mllvm -disable-loop-idiom-all -mllvm -vectorize-slp=0 -mllvm -vectorize-loops=0 -mllvm -rewrite-ptr-subs=1 -mllvm -enable-tail-merge=0 -mllvm -hwasan-recover=1 -L/src/fsan/runtimes/lib -Wl,-rpath,/src/fsan/runtimes/lib --rtlib=compiler-rt --unwindlib=libunwind --ld-path=/src/fsan/llvm-project/build/bin/ld.lld -Wno-unused-command-line-argument ${FSAN_BLOCK_FLAGS}"   
-ENV LDFLAGS="-fsanitize=hwaddress -stdlib=libc++ --unwindlib=libunwind --rtlib=compiler-rt -L/src/fsan/runtimes/lib -Wl,-rpath,/src/fsan/runtimes/lib --ld-path=/src/fsan/llvm-project/build/bin/ld.lld"
-
-ENV LD="$LLVM/build/bin/ld.lld"
+ENV LD="$LLVM_BIN/ld.lld"
+ENV COMMON_COMP_FLAGS="-O2 -g3 -DFUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION -pthread -fno-common -fno-data-sections -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -L/src/fsan/runtimes/lib/ -fno-discard-value-names"
+ENV FSAN_CONFIG_COMPILE_FLAGS="-fsanitize=hwaddress,fsan-heap  -mllvm -disable-loop-idiom-all -mllvm -vectorize-slp=0 -mllvm -vectorize-loops=0 -mllvm -fsan-blocklist-tag-filepath=/src/fsan.blocklist -mllvm -fsan-list-of-vars-to-blocklist=/src/fsan.blocklist.vars -mllvm -rewrite-ptr-subs=1 -mllvm -enable-tail-merge=0 -mllvm -hwasan-recover=1 -mllvm -fsan-triage"
+# fsan-triage records dbg info at runtime to ease triage, it makes it a bit slower but is very useful for triage
+ENV CXXFLAGS="$COMMON_COMP_FLAGS -stdlib=libc++ -nostdinc++ -isystem $FSAN_RT/include/c++/v1 $FSAN_CONFIG_COMPILE_FLAGS --rtlib=compiler-rt --unwindlib=libunwind -Wno-unused-command-line-argument"
+ENV CFLAGS="$COMMON_COMP_FLAGS $FSAN_CONFIG_COMPILE_FLAGS"
   
 ENV CXXFLAGS_EXTRA=""
 ENV CCACHE_DISABLE=1
@@ -81,21 +77,18 @@ RUN rm -rf `which ccache` || true
 
 ENV HWASAN_SYMBOLIZER_PATH="/usr/local/bin/llvm-symbolizer"
 ENV ASAN_SYMBOLIZER_PATH="/usr/local/bin/llvm-symbolizer"
-# suitable for fuzzing
 ENV HWASAN_OPTIONS="symbolize=0:exitcode=0:halt_on_error=0:recover_report=summary:verbosity=0:detect_leaks=0:allocator_may_return_null=1"
 
 RUN touch /src/fsan.blocklist
 RUN touch /src/fsan.blocklist.vars
 
 RUN cp $AFL/utils/aflpp_driver/libAFLDriver.a /usr/lib/libFuzzingEngine.a
-RUN cp $AFL/utils/aflpp_driver/libAFLDriver.a /usr/lib/libFuzzingEngine.a
-RUN ar -t /usr/lib/libFuzzingEngine.a
+RUN ar -t /usr/lib/libFuzzingEngine.a | grep -qi "afl" || exit 1
 
-# copy relevant scripts to 
-# start fuzzing getting corpora from upstream oss-fuzz when available. When not available, repurpose local ones.
 COPY oss-fuzz/start-campaign.sh $SRC/fuzz.sh
 COPY oss-fuzz/output.py $SRC/output.py
 COPY oss-fuzz/output-full.py $SRC/output-full.py
+COPY oss-fuzz/classify_crashes.py $SRC/classify_crashes.py
 COPY oss-fuzz/quick-check.sh $SRC/quick-check.sh
 COPY oss-fuzz/schedule-fuzzer.sh $SRC/schedule-fuzzer.sh
 COPY oss-fuzz/results.sh $SRC/results.sh
@@ -117,6 +110,6 @@ RUN git config --global --add safe.directory /fuzzing-campaign
 RUN echo "set -g mouse on" >> ~/.tmux.conf
 COPY oss-fuzz/codeql /src/codeql-queries
 RUN echo "alias CHKLIBS='for f in /out/*; do [ -x "$f" ] && ldd "$f" 2>/dev/null | grep -qE 'libc\+\+' && ! ldd "$f" | grep -q "$FSAN_RT/lib/libc++" && echo "WRONG LIBC++: $f"; done'" >> ~/.bashrc
-
+# keep tmux trash out of tmp
 ENV TMUX_TMPDIR=/run/tmux
 RUN mkdir -p /run/tmux && chmod 700 /run/tmux

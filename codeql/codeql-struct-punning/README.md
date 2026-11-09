@@ -9,6 +9,8 @@
 | `MemsetOverMember.ql` | a `memset`/`bzero`/`memcpy`/`memmove` that starts at a member and runs past it | `memset_member.c` `[member]` |
 | `CustomAllocatorStruct.ql` | a custom allocator call whose result becomes a struct pointer | `allocator.c`, `arena.c` `[alloc]` |
 | `ArenaAllocator.ql` | an arena/recycler allocator, its arena struct type and where that object is instantiated | `arena.c` `[arena]` |
+| `AllocatorPunning.ql` | a custom allocator whose memory has one struct type (the allocated type) and is converted to another | `alloc_type.c` `[type]` |
+| `AllocatorTypes.ql` | one line per custom allocator and type to blocklist: the FSan blocklist entry, where the memory comes from, what it is used as | `allocator_types.c` `[types]`, `alloc_type.c` |
 
 The expected results are marked in the test files. The test files share one
 database, so they must not define the same global function twice: CodeQL merges
@@ -16,7 +18,7 @@ such functions, and data flow skips a function with two bodies.
 
 ```bash
 codeql pack install .
-codeql database create db --language=cpp --source-root=test --command="clang -c pun.c iob.c flatten.c allocator.c memset_member.c arena.c"
+codeql database create db --language=cpp --source-root=test --command="clang -c pun.c iob.c flatten.c allocator.c memset_member.c arena.c alloc_type.c allocator_types.c"
 codeql database analyze db --rerun --format=sarif-latest --output=db.sarif .   # all queries
 ```
 
@@ -194,3 +196,134 @@ returns a pointer from a field and moves it forward, such as a tokenizer
 Detection misses allocators that return memory through an out-parameter
 (`int alloc(void **out)`), arenas whose state lives in local or global scalars
 rather than in a struct, and allocators only called through function pointers.
+
+## Allocated types
+
+FSan tags heap memory with the type of the allocation, not with the type that
+the program later uses it as. A custom allocator can create memory of one
+struct type and hand it out as another. For example, Perl carves its ops out of
+`calloc`'ed `struct opslab` memory, and `NewOp` casts each one to `LISTOP *`,
+`UNOP *`, and so on. Field accesses through those pointers are then reported as
+tag mismatches. `AllocatorPunning.ql` finds the allocated type for each such
+allocator, the blocklist candidate, together with the types that callers
+convert the result to.
+
+The query follows each pointer that a custom allocator (see above) returns
+backwards, inside the allocator and through the allocators it wraps. It goes
+through casts, pointer arithmetic, `?:`, sub-objects (`&s->f`, `&a[i]`, an
+array member `s->buf`), and pointer variables and fields. A variable or field
+stands for every value assigned to it anywhere, in any object of the type:
+`p = r->cur` comes from `r->cur = r->mem`. The walk stops where the memory is
+created:
+
+- **allocated by …:** an allocation call. Its type is the struct that the result
+  is converted to there (a cast, or the declared type of the variable that it
+  initializes), or else the struct that a `sizeof` in its arguments names.
+- **static object / local variable:** a declared struct, or an array of
+  structs, that the pointer points into (`P.buf + P.used`).
+
+The query reports one result per allocator, allocated type and converted-to
+type, at the first conversion. The message counts the other conversions and
+allocation sites. If the pointer is narrowed to a member on the way, the
+message names the member (`narrowed to opslot.opslot_op`). Types related by
+inheritance are not reported, and neither are allocators whose result is used
+as the allocated type.
+
+On `test/alloc_type.c`:
+
+```
+alloc_type.c:70: Custom allocator Slab_Alloc (alloc_type.c:31) returns memory of struct opslab (alloc_type.c:23), allocated by calloc() (alloc_type.c:26), narrowed to opslot.opslot_op. It is converted here to struct listop (alloc_type.c:19) and in 1 other place.
+alloc_type.c:75: Custom allocator cell_alloc (alloc_type.c:12) returns memory of struct object (alloc_type.c:6), allocated by malloc() (alloc_type.c:12). It is converted here to struct bar (alloc_type.c:8).
+alloc_type.c:77: Custom allocator pool_get (alloc_type.c:59) returns memory of struct pool (alloc_type.c:57), static object P (alloc_type.c:58), narrowed to pool.buf. It is converted here to struct foo (alloc_type.c:7).
+```
+
+`StructPunning.ql` sees only part of this. It reports `struct op` →
+`struct listop` (the type that `Slab_Alloc` hands out, not the one it
+allocates), and it misses allocators that never name the allocated type in a
+pointer, such as `cell_alloc` (typed only by `sizeof`) and `pool_get`.
+
+Allocators that return raw bytes (`char` arenas, `malloc(n)` without a struct
+type) have no allocated type, so this query skips them. FSan does not tag that
+memory; `CustomAllocatorStruct.ql` reports where it becomes a struct.
+
+The query misses memory that it cannot trace back to its creation:
+
+- pointers loaded through `*p` or `a[i]`, such as free lists stored in arrays;
+- free lists whose objects only come back from the free function's parameter;
+- allocations whose type is not visible at the call (`void *p = malloc(n);`
+  converted later).
+
+The field rule makes the walk type-based, so a pointer field that holds memory
+from several allocators gives all of their types.
+
+## Blocklist entries for custom allocators
+
+`AllocatorTypes.ql` condenses `AllocatorPunning.ql` into what the FSan
+blocklist needs: one line per custom allocator and struct type to blocklist.
+Each message starts with the blocklist entry, spelled as FSan matches it, by
+the IR type name (`struct.opslab`, `class.ns::C`), without template arguments
+so that it covers every instantiation:
+
+```
+struct.opslab: Perl_Slab_Alloc hands out memory from calloc() op.c:181, narrowed to opslab.opslab_slots, opslot.opslot_op; it is used as struct binop, struct cop, struct listop +9.
+```
+
+To run only this query and print one line per result, located at the
+allocator:
+
+```bash
+codeql database analyze db --rerun --format=sarif-latest --output=types.sarif AllocatorTypes.ql
+jq -r '.runs[].results[] | .locations[0].physicalLocation as $p | .message.text | split("\n")[] | "\($p.artifactLocation.uri):\($p.region.startLine): \(.)"' types.sarif
+```
+
+and to list the entries, one per line, as in the file that
+`-mllvm -fsan-blocklist-tag-filepath` reads:
+
+```bash
+jq -r '.runs[].results[] | select(.ruleId == "fsan/allocator-types") | .message.text | split("\n")[] | capture("^(?<e>.+?): ").e' types.sarif | sort -u
+```
+
+Review the lines before adding the entries: a blocklisted type loses all of
+its checks.
+
+What the query does differently from `AllocatorPunning.ql`:
+
+- **Only memory that FSan tags.** Allocations by `malloc`, `calloc`,
+  `realloc`, `reallocarray` and `new` (the functions that FSan's front end
+  types) and declared objects; not `aligned_alloc` or `mmap`. A declared
+  object counts only if the allocator carves memory out of an array member of
+  it, its storage (`P.buf`): returning `&PL_sv_undef` does not allocate it.
+- **The entry is the struct that declares the storage**, if the allocator
+  carves from one: `struct _dtoa_state`, not the whole runtime state around
+  it. FSan also untags a blocklisted struct where it is nested. Storage carved
+  through a parameter (`p->mem + p->used`) is found too, although
+  `AllocatedTypes.qll` sees no origin for it.
+- **Uses that raise no reports are left out:** storage that holds the type it
+  hands out (`&NP.nodes[i]`), and types whose fields are the first fields of
+  the other, at the same offsets and sizes (a C "base struct", such as Perl's
+  `BASEOP`), which FSan tags alike.
+- **"Used as" comes from conversions of the returned pointer**, inside the
+  allocator on its way to the return (`return (Bigint *)pmem_next;`) or at its
+  calls (`(LISTOP *)Perl_Slab_Alloc(...)`), from another pointer type. Flow
+  through memory is left out: on Perl it reaches casts to nearly every struct.
+  The message names three types and counts the others.
+- **A function that only carves must carve from the type to blocklist.**
+  Perl's `pp_return` returns `cx->blk_sub.retop` and updates `cx`, so the carve
+  rule takes it for an allocator of Perl's context struct; it reaches opslab
+  memory only through what `retop` may hold, and is left out.
+
+On perlbench (500.perlbench_r, a database of its 69 sources, 76 s) the query
+gives five lines, all with the entry of the hand-written blocklist:
+
+```
+ext/Devel-Peek/Peek.c:366: struct.opslab: S_ck_dump hands out memory from calloc() op.c:181, narrowed to opslab.opslab_slots, opslot.opslot_op; it is used as struct binop, struct op, struct unop.
+op.c:10214: struct.opslab: Perl_ck_grep hands out memory from calloc() op.c:181, narrowed to opslab.opslab_slots, opslot.opslot_op; it is used as struct op.
+op.c:1427: struct.opslab: S_alloc_LOGOP hands out memory from calloc() op.c:181, narrowed to opslab.opslab_slots, opslot.opslot_op; it is used as struct logop, struct op.
+op.c:167: struct.opslab: S_new_slab hands out memory from calloc() op.c:181; it is used as struct op.
+op.c:198: struct.opslab: Perl_Slab_Alloc hands out memory from calloc() op.c:181, narrowed to opslab.opslab_slots, opslot.opslot_op; it is used as struct binop, struct cop, struct listop +9.
+```
+
+`Perl_ck_grep` and `S_ck_dump` build ops: they return a new op from
+`S_alloc_LOGOP` or `NewOp`. The query does not see puns that are not
+allocators, such as CPython's obmalloc, which uses an array of pointers as pool
+headers, and it misses the allocators listed under Allocated types.

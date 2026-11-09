@@ -17,6 +17,9 @@
 
 # Build CUPS
 pushd $SRC/cups
+export  CFLAGS="-O2 -g3 -fsanitize=hwaddress,fsan-heap -DFUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION -pthread -fno-common -fno-data-sections -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -L/src/fsan/runtimes/lib/ -fno-discard-value-names -mllvm -rewrite-ptr-subs=1 -mllvm -disable-loop-idiom-all -mllvm -vectorize-slp=0 -mllvm -vectorize-loops=0 -mllvm -rewrite-ptr-subs=1 -mllvm -enable-tail-merge=0 -mllvm -fsan-blocklist-tag-filepath=/src/fsan.blocklist -mllvm -fsan-list-of-vars-to-blocklist=/src/fsan.blocklist.vars -mllvm -hwasan-recover=1 -Wno-unused-command-line-argument -L/src/fsan/runtimes/lib -Wl,-rpath,/src/fsan/runtimes/lib --rtlib=compiler-rt --unwindlib=libunwind --ld-path=${LD} -Wno-unused-command-line-argument"
+export CXXFLAGS="${CFLAGS} -stdlib=libc++ -nostdinc++ -isystem /src/fsan/runtimes/include/c++/v1"
+export LDFLAGS="-fsanitize=hwaddress -stdlib=libc++ --unwindlib=libunwind --rtlib=compiler-rt -L/src/fsan/runtimes/lib -Wl,-rpath,/src/fsan/runtimes/lib --ld-path=${LD} -Wno-unused-command-line-argument"
 # Fix bad line
 sed -i '2110s/\(\s\)f->value/\1(int)f->value/' cups/ppd-cache.c
 
@@ -32,8 +35,8 @@ popd
 rm -rf cups/libs || die
 rm -rf freetype || die
 rm -rf zlib || die
+cp -r $SRC/freetype freetype
 
-mv $SRC/freetype freetype
 
 CUPSCONFIG="$WORK/cups-config"
 CUPS_CFLAGS=$($CUPSCONFIG --cflags)
@@ -94,7 +97,7 @@ done
 zip -j "$OUT/gstoraster_pdf_fuzzer_seed_corpus.zip" $SRC/pdf_seeds/*
 
 # Create corpus for gstoraster_fuzzer_all_colors. Only use seeds of a few KB in size.
-mkdir -p "$WORK/all_color_seeds"
+mkdir -p "$WORK/all_color_seeds" || true
 for f in examples/ridt91.eps examples/snowflak.ps $SRC/pdf_seeds/pdf.pdf; do
   # Prepend a single byte to seed, because it's used to determine the color
   # scheme in the gstoraster_fuzzer_all_colors.
@@ -106,7 +109,7 @@ done
 zip -j "$OUT/gstoraster_fuzzer_all_colors_seed_corpus.zip" "$WORK"/all_color_seeds/*
 
 # Do the same thing with pdfwrites opt fuzzer, but multiple bytes
-mkdir -p "$WORK/gs_device_pdfwrite_opts_fuzzer_seeds"
+mkdir -p "$WORK/gs_device_pdfwrite_opts_fuzzer_seeds" || true
 for f in examples/ridt91.eps examples/snowflak.ps $SRC/pdf_seeds/pdf.pdf; do
   # Prepend the number of bytes used for picking options in the opts fuzzer
   printf "\x01\x01" | cat - "$f" > tmp_file.txt
@@ -124,7 +127,7 @@ zip -j "$OUT/gs_device_pdfwrite_opts_fuzzer_seed_corpus.zip" "$WORK"/gs_device_p
 python3 $SRC/generate_seeds.py "$WORK/generated_gs_seeds"
 
 # Create seeds for gstoraster_fuzzer
-mkdir -p "$WORK/seeds"
+mkdir -p "$WORK/seeds" || true
 for f in examples/*.{ps,pdf}; do
   s=$(sha1sum "$f" | awk '{print $1}')
   cp "$f" "$WORK/seeds/$s"
