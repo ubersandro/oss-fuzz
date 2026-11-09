@@ -1,0 +1,5 @@
+hb-subset-fuzzer
+hb-shape-fuzzer
+hb-vector-fuzzer
+hb-raster-fuzzer
+hb-repacker-fuzzer
