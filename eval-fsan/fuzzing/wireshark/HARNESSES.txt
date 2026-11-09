@@ -1,8 +1,8 @@
-/out/fuzzshark_dis
-/out/fuzzshark_udp_port-dns
-/out/fuzzshark_udp_port-dhcp
-/out/fuzzshark_ip_proto-ospf
-/out/fuzzshark_ip
-/out/fuzzshark_media_type-json
-/out/fuzzshark_ip_proto-udp
-/out/fuzzshark_tcp_port-bgp
+fuzzshark_dis
+fuzzshark_udp_port-dns
+fuzzshark_udp_port-dhcp
+fuzzshark_ip_proto-ospf
+fuzzshark_ip
+fuzzshark_media_type-json
+fuzzshark_ip_proto-udp
+fuzzshark_tcp_port-bgp

@@ -16,7 +16,7 @@
 
 FROM fsan-afl-codeql:latest
 RUN apt-get update && apt-get install -y make
-RUN git clone --depth 1 https://github.com/bellard/quickjs quickjs && cd quickjs && git checkout 712e8c0ca26949477c38f91dbaf955cc48e2f261 # 2833510432045f72915919cef680ba59e5153b16
+RUN git clone --depth 1 https://github.com/bellard/quickjs quickjs # && cd quickjs && git checkout 712e8c0ca26949477c38f91dbaf955cc48e2f261 # 2833510432045f72915919cef680ba59e5153b16
 RUN git clone --depth 1 https://github.com/renatahodovan/quickjs-corpus
 WORKDIR $SRC/quickjs
 COPY build.sh run_tests.sh $SRC/
